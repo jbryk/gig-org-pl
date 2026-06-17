@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Formularze — Panel GIG</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/admin/_admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="sidebar-logo">
+        <a class="logo-badge" href="dashboard.html">
+          <span class="logo-icon">GIG</span>
+          <span class="logo-text">Panel GIG<span>Geodezyjna Izba Gospodarcza</span></span>
+        </a>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">Zarządzanie</div>
+        <a href="dashboard.html"><span class="nav-icon">▦</span> Pulpit</a>
+        <a href="formularze.html#newsletter"><span class="nav-icon">✉</span> Newsletter <span class="nav-badge" id="navBadgeNewsletter" style="display:none">0</span></a>
+        <a href="formularze.html#kontakt"><span class="nav-icon">☎</span> Kontakt <span class="nav-badge" id="navBadgeKontakt" style="display:none">0</span></a>
+        <a href="artykuly.html"><span class="nav-icon">✎</span> Artykuły</a>
+        <div class="nav-section">Strona</div>
+        <a href="/" target="_blank"><span class="nav-icon">↗</span> Zobacz stronę</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <span class="user-avatar" id="userAvatar">A</span>
+          <div class="user-info"><div class="user-name" id="userName">admin</div><div class="user-role">Administrator</div></div>
+          <button class="btn-logout" data-action="logout" title="Wyloguj">⏻</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="admin-main">
+      <header class="admin-topbar"><div class="topbar-title">Formularze</div></header>
+      <main class="admin-content">
+        <div class="card tabs-root" id="tabsRoot">
+          <div class="card-body">
+            <div class="tabs">
+              <button class="tab-btn" data-tab="newsletter">✉ Newsletter</button>
+              <button class="tab-btn" data-tab="kontakt">☎ Kontakt</button>
+            </div>
+
+            <!-- NEWSLETTER -->
+            <div class="tab-pane" data-tab="newsletter">
+              <div class="toolbar">
+                <div class="search-box"><span class="search-icon">⌕</span>
+                  <input type="text" class="form-control" id="nlSearch" placeholder="Szukaj po e-mailu…"></div>
+                <button class="btn btn-outline btn-sm" id="nlExport">⬇ Eksport CSV</button>
+              </div>
+              <div class="table-wrap">
+                <table class="admin-table">
+                  <thead><tr><th>E-mail</th><th>Data zapisu</th><th>Status</th><th></th></tr></thead>
+                  <tbody id="nlRows"><tr><td colspan="4" style="text-align:center;padding:24px;color:#6b7f84;">Ładowanie…</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- KONTAKT -->
+            <div class="tab-pane" data-tab="kontakt">
+              <div class="toolbar">
+                <div class="search-box"><span class="search-icon">⌕</span>
+                  <input type="text" class="form-control" id="ktSearch" placeholder="Szukaj po nazwisku, e-mailu, temacie…"></div>
+                <button class="btn btn-outline btn-sm" id="ktExport">⬇ Eksport CSV</button>
+              </div>
+              <div class="table-wrap">
+                <table class="admin-table">
+                  <thead><tr><th>Nadawca</th><th>Temat</th><th>Wiadomość</th><th>Data</th><th>Status</th><th></th></tr></thead>
+                  <tbody id="ktRows"><tr><td colspan="6" style="text-align:center;padding:24px;color:#6b7f84;">Ładowanie…</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/admin/_admin.js"></script>
+  <script>
+    let nlData = [], ktData = [];
+
+    async function markRead(table, id) {
+      const { error } = await db.from(table).update({ status: 'read' }).eq('id', id);
+      if (error) { toast('Błąd aktualizacji', 'error'); return false; }
+      toast('Oznaczono jako przeczytane', 'success');
+      return true;
+    }
+
+    function renderNl(filter='') {
+      const f = filter.toLowerCase();
+      const rows = nlData.filter(r => (r.email||'').toLowerCase().includes(f));
+      const tb = document.getElementById('nlRows');
+      if (!rows.length) { tb.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:#6b7f84;">Brak zapisów.</td></tr>'; return; }
+      tb.innerHTML = rows.map(r => `
+        <tr>
+          <td><strong>${esc(r.email)}</strong></td>
+          <td style="white-space:nowrap;">${fmtDate(r.created_at)}</td>
+          <td><span class="badge badge-${r.status==='new'?'new':'read'}">${r.status==='new'?'nowy':'przeczytany'}</span></td>
+          <td class="actions">
+            ${r.status==='new'?`<button class="btn btn-ghost btn-xs" data-mark="${r.id}">✓ przeczytane</button>`:''}
+          </td>
+        </tr>`).join('');
+      tb.querySelectorAll('[data-mark]').forEach(b => b.addEventListener('click', async () => {
+        if (await markRead('submissions_newsletter', b.dataset.mark)) load();
+      }));
+    }
+
+    function renderKt(filter='') {
+      const f = filter.toLowerCase();
+      const rows = ktData.filter(r =>
+        (r.name||'').toLowerCase().includes(f) || (r.email||'').toLowerCase().includes(f) || (r.subject||'').toLowerCase().includes(f));
+      const tb = document.getElementById('ktRows');
+      if (!rows.length) { tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:#6b7f84;">Brak wiadomości.</td></tr>'; return; }
+      tb.innerHTML = rows.map(r => `
+        <tr>
+          <td><strong>${esc(r.name||'—')}</strong><br><span style="color:#6b7f84;font-size:12px;">${esc(r.email)}</span></td>
+          <td>${esc(r.subject||'—')}</td>
+          <td style="max-width:340px;">${esc((r.message||'').slice(0,140))}${(r.message||'').length>140?'…':''}</td>
+          <td style="white-space:nowrap;">${fmtDate(r.created_at)}</td>
+          <td><span class="badge badge-${r.status==='new'?'new':'read'}">${r.status==='new'?'nowa':'przeczytana'}</span></td>
+          <td class="actions">
+            <a class="btn btn-outline btn-xs" href="mailto:${esc(r.email)}?subject=${encodeURIComponent('Re: '+(r.subject||'wiadomość ze strony GIG'))}">↩ Odpowiedz</a>
+            ${r.status==='new'?`<button class="btn btn-ghost btn-xs" data-mark="${r.id}">✓</button>`:''}
+          </td>
+        </tr>`).join('');
+      tb.querySelectorAll('[data-mark]').forEach(b => b.addEventListener('click', async () => {
+        if (await markRead('submissions_kontakt', b.dataset.mark)) load();
+      }));
+    }
+
+    async function load() {
+      const [nl, kt] = await Promise.all([
+        db.from('submissions_newsletter').select('*').order('created_at', { ascending: false }),
+        db.from('submissions_kontakt').select('*').order('created_at', { ascending: false }),
+      ]);
+      if (nl.error || kt.error) { toast('Błąd ładowania danych', 'error'); return; }
+      nlData = nl.data || []; ktData = kt.data || [];
+      renderNl(document.getElementById('nlSearch').value);
+      renderKt(document.getElementById('ktSearch').value);
+      loadSidebarBadges();
+    }
+
+    (async () => {
+      if (!await requireAuth()) return;
+      initTabs('#tabsRoot');
+      document.getElementById('nlSearch').addEventListener('input', e => renderNl(e.target.value));
+      document.getElementById('ktSearch').addEventListener('input', e => renderKt(e.target.value));
+      document.getElementById('nlExport').addEventListener('click', () =>
+        exportCSV(nlData, [{key:'email',label:'E-mail'},{key:'status',label:'Status'},{key:'created_at',label:'Data'}], 'newsletter-gig.csv'));
+      document.getElementById('ktExport').addEventListener('click', () =>
+        exportCSV(ktData, [{key:'name',label:'Imię'},{key:'email',label:'E-mail'},{key:'subject',label:'Temat'},{key:'message',label:'Wiadomość'},{key:'created_at',label:'Data'}], 'kontakt-gig.csv'));
+      // aktywuj zakładkę z hasha
+      const h = location.hash.replace('#','');
+      if (h) { const b = document.querySelector(`.tab-btn[data-tab="${h}"]`); if (b) b.click(); }
+      load();
+    })();
+  </script>
+</body>
+</html>

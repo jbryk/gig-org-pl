@@ -1,0 +1,141 @@
+/* =====================================================================
+   GIG — integracja formularzy (Contact Form 7) z Supabase
+   ---------------------------------------------------------------------
+   Przechwytuje wysyłkę formularzy CF7 i zapisuje do Supabase:
+     - newsletter (pole your-newsletter-email)  -> submissions_newsletter
+     - kontakt   (your-name/email/subject/message) -> submissions_kontakt
+   Tryby:
+     1) BACKEND: po uzupełnieniu SUPABASE_URL + SUPABASE_ANON zapisuje do bazy.
+     2) FALLBACK: dopóki Supabase niepodpięte -> otwiera pocztę (mailto biuro@gig.org.pl).
+   KONFIGURACJA: uzupełnij dwie stałe poniżej (Supabase → Settings → API; klucz anon).
+   ===================================================================== */
+(function () {
+  "use strict";
+
+  var SUPABASE_URL  = "https://TWOJ-PROJEKT.supabase.co";  // ← podmień
+  var SUPABASE_ANON = "sb_publishable_XXXXXXXXXXXX";         // ← podmień (anon)
+  var FALLBACK_EMAIL = "biuro@gig.org.pl";
+
+  var configured = SUPABASE_URL.indexOf("TWOJ-PROJEKT") === -1 && SUPABASE_ANON.indexOf("XXXX") === -1;
+
+  var dbPromise = null;
+  function getDb() {
+    if (dbPromise) return dbPromise;
+    dbPromise = new Promise(function (resolve, reject) {
+      if (window.supabase) return resolve(window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON));
+      var s = document.createElement("script");
+      s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js";
+      s.onload = function () { resolve(window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON)); };
+      s.onerror = function () { reject(new Error("Supabase SDK load error")); };
+      document.head.appendChild(s);
+    });
+    return dbPromise;
+  }
+
+  function val(form, sel) {
+    var el = form.querySelector(sel);
+    return el ? (el.value || "").trim() : "";
+  }
+  function isEmail(e) { return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e); }
+
+  function showMsg(form, text, ok) {
+    var box = form.querySelector(".wpcf7-response-output");
+    if (!box) {
+      box = document.createElement("div");
+      box.className = "wpcf7-response-output";
+      form.appendChild(box);
+    }
+    box.style.cssText = "display:block;margin-top:12px;padding:10px 14px;border-radius:6px;font-size:14px;" +
+      (ok ? "background:#e8f3ec;color:#1f6b3b;border:1px solid #b6dcc4;"
+          : "background:#fbeaea;color:#9b2222;border:1px solid #e6b8b8;");
+    box.textContent = text;
+  }
+
+  function mailto(subject, body) {
+    return "mailto:" + FALLBACK_EMAIL + "?subject=" + encodeURIComponent(subject) +
+           "&body=" + encodeURIComponent(body);
+  }
+
+  function classify(form) {
+    if (form.querySelector('[name="your-newsletter-email"]')) return "newsletter";
+    if (form.querySelector('[name="your-message"], [name="your-email"]')) return "kontakt";
+    return null;
+  }
+
+  async function handleNewsletter(form) {
+    var email = val(form, '[name="your-newsletter-email"]');
+    var consent = form.querySelector('[name="newsletter-consent"]');
+    if (!isEmail(email)) { showMsg(form, "Podaj poprawny adres e-mail.", false); return; }
+    if (consent && !consent.checked) { showMsg(form, "Zaznacz zgodę na przetwarzanie danych.", false); return; }
+
+    if (!configured) {
+      window.location.href = mailto("Zapis do newslettera GIG", "Proszę o zapis do newslettera GIG:\nE-mail: " + email + "\n");
+      showMsg(form, "Otworzyliśmy program pocztowy. Jeśli się nie otworzył, napisz na " + FALLBACK_EMAIL + ".", true);
+      return;
+    }
+    try {
+      var db = await getDb();
+      var res = await db.from("submissions_newsletter").insert({ email: email, status: "new" });
+      if (res.error && res.error.code !== "23505") throw res.error; // 23505 = duplikat = ok
+      form.reset();
+      showMsg(form, "✓ Dziękujemy! Zapisano do newslettera.", true);
+    } catch (e) {
+      console.error(e);
+      showMsg(form, "Błąd zapisu — spróbuj ponownie lub napisz na " + FALLBACK_EMAIL + ".", false);
+    }
+  }
+
+  async function handleKontakt(form) {
+    var data = {
+      name: val(form, '[name="your-name"]'),
+      email: val(form, '[name="your-email"]'),
+      subject: val(form, '[name="your-subject"]'),
+      message: val(form, '[name="your-message"]')
+    };
+    var acc = form.querySelector('[name="acceptance-rodo"]');
+    if (!data.email || !data.message) { showMsg(form, "Uzupełnij e-mail i treść wiadomości.", false); return; }
+    if (!isEmail(data.email)) { showMsg(form, "Podaj poprawny adres e-mail.", false); return; }
+    if (acc && !acc.checked) { showMsg(form, "Zaznacz zgodę RODO.", false); return; }
+
+    if (!configured) {
+      window.location.href = mailto("Wiadomość ze strony GIG: " + (data.subject || "kontakt"),
+        "Imię: " + data.name + "\nE-mail: " + data.email + "\nTemat: " + (data.subject || "—") + "\n\n" + data.message + "\n");
+      showMsg(form, "Otworzyliśmy program pocztowy. Jeśli się nie otworzył, napisz na " + FALLBACK_EMAIL + ".", true);
+      return;
+    }
+    try {
+      var db = await getDb();
+      var res = await db.from("submissions_kontakt").insert({
+        name: data.name || "Anonim", email: data.email,
+        subject: data.subject || null, message: data.message, status: "new"
+      });
+      if (res.error) throw res.error;
+      form.reset();
+      showMsg(form, "✓ Wiadomość wysłana. Odpowiemy najszybciej, jak to możliwe.", true);
+    } catch (e) {
+      console.error(e);
+      showMsg(form, "Błąd wysyłania — spróbuj ponownie lub napisz na " + FALLBACK_EMAIL + ".", false);
+    }
+  }
+
+  function hook(form) {
+    if (form.dataset.gigHooked) return;
+    form.dataset.gigHooked = "1";
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      e.stopImmediatePropagation(); // zablokuj własny handler CF7
+      var kind = classify(form);
+      if (kind === "newsletter") handleNewsletter(form);
+      else if (kind === "kontakt") handleKontakt(form);
+    }, true); // capture
+  }
+
+  function init() {
+    document.querySelectorAll("form.wpcf7-form, form").forEach(function (f) {
+      if (classify(f)) hook(f);
+    });
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="-10 -10 120 120">
+  <defs>
+    <clipPath id="uklad2000">
+      <rect x="0" y="0" width="23" height="120"></rect>
+      <rect x="27" y="0" width="23" height="120"></rect>
+      <rect x="54" y="0" width="23" height="120"></rect>
+      <rect x="81" y="0" width="24" height="120"></rect>
+    </clipPath>
+  </defs>
+  <path d="M 5,35 L 45,10 L 55,20 L 85,15 L 105,50 L 95,85 L 65,110 L 25,100 L 0,75 Z" fill="#dc2626" clip-path="url(#uklad2000)"></path>
+</svg>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Panel GIG — logowanie</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/admin/_admin.css">
+  <style>
+    .login-wrap { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;
+      background:linear-gradient(135deg,#002C34,#2E7981); }
+    .login-card { background:#fff; border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.25);
+      width:100%; max-width:400px; padding:36px 34px; }
+    .login-logo { display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+    .login-logo .ic { width:44px; height:44px; border-radius:10px; background:#2E7981; color:#fff;
+      display:flex; align-items:center; justify-content:center; font-weight:800; font-size:18px; }
+    .login-card h1 { font-size:20px; color:#002C34; margin:14px 0 4px; }
+    .login-card p.sub { color:#6b7f84; font-size:13px; margin-bottom:24px; }
+    .login-card .btn-primary { width:100%; justify-content:center; padding:11px; font-size:14px; margin-top:6px; }
+    .login-err { background:#fbeaea; color:#9b2222; border:1px solid #e6b8b8; border-radius:6px;
+      padding:9px 12px; font-size:13px; margin-top:14px; display:none; }
+  </style>
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-logo">
+        <span class="ic">GIG</span>
+        <div class="logo-text" style="color:#002C34;font-weight:800;font-size:14px;">Panel zarządzania<br>
+          <span style="font-weight:400;font-size:11px;color:#6b7f84;">Geodezyjna Izba Gospodarcza</span></div>
+      </div>
+      <h1>Zaloguj się</h1>
+      <p class="sub">Dostęp tylko dla administratorów GIG.</p>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="email">E-mail</label>
+          <input type="email" id="email" class="form-control" autocomplete="username" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Hasło</label>
+          <input type="password" id="password" class="form-control" autocomplete="current-password" required>
+        </div>
+        <button type="submit" class="btn btn-primary" id="loginBtn">Zaloguj</button>
+        <div class="login-err" id="loginErr"></div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/admin/_admin.js"></script>
+  <script>
+    (async () => {
+      const s = await getSession();
+      if (s) window.location.href = 'dashboard.html';
+    })();
+    const form = document.getElementById('loginForm');
+    const errBox = document.getElementById('loginErr');
+    const btn = document.getElementById('loginBtn');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errBox.style.display = 'none';
+      btn.disabled = true; btn.textContent = 'Logowanie…';
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const { error } = await db.auth.signInWithPassword({ email, password });
+      btn.disabled = false; btn.textContent = 'Zaloguj';
+      if (error) {
+        errBox.textContent = 'Błędny e-mail lub hasło.';
+        errBox.style.display = 'block';
+      } else {
+        window.location.href = 'dashboard.html';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "trailingSlash": true,
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "www.gig.org.pl" }],
+      "destination": "https://gig.org.pl/$1",
+      "permanent": true
+    }
+  ]
+}
