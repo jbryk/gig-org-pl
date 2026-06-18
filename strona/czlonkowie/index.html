@@ -152,8 +152,11 @@
         var list=byReg[reg].sort(function(a,b){return a.name.localeCompare(b.name,'pl');});
         html+='<div class="region"><h2>'+esc(reg)+'</h2><span class="pill">'+list.length+'</span><span class="ln"></span></div><div class="grid">';
         list.forEach(function(r,i){
+          var msc=((String(r.address||'').match(/\d{2}-\d{3}\s*(.+)$/)||[])[1]||'').trim();
+          var meta=[esc(reg), esc(msc)].filter(Boolean).join(' · ');
           html+='<button class="card" data-reg="'+esc(reg)+'" data-i="'+i+'"><h3>'+esc(r.name)+'</h3>'+
-                (r.person?'<div class="who">'+esc(r.person)+'</div>':'')+
+                (meta?'<div class="who">'+meta+'</div>':'')+
+                (r.person?'<div class="who" style="margin-top:2px;color:#8a96a2">'+esc(r.person)+'</div>':'')+
                 '<span class="arrow">Zobacz szczegóły →</span></button>';
         });
         html+='</div>';
