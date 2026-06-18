@@ -130,10 +130,22 @@
     }, true); // capture
   }
 
+  // Wstępne wypełnienie formularza po przyjściu z „Zapisz się” (/kontakt/?szkolenie=...)
+  function prefillFromSzkolenie() {
+    var m = location.search.match(/[?&]szkolenie=([^&]+)/);
+    if (!m) return;
+    var title = decodeURIComponent(m[1].replace(/\+/g, " "));
+    var subj = document.querySelector('[name="your-subject"]');
+    var msg = document.querySelector('[name="your-message"]');
+    if (subj && !subj.value) subj.value = "Zapis na szkolenie: " + title;
+    if (msg && !msg.value) msg.value = "Chcę zgłosić udział w szkoleniu: " + title + ".\n\nImię i nazwisko / firma:\nTelefon:\n";
+  }
+
   function init() {
     document.querySelectorAll("form.wpcf7-form, form").forEach(function (f) {
       if (classify(f)) hook(f);
     });
+    prefillFromSzkolenie();
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);

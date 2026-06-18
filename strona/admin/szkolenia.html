@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Szkolenia — Panel GIG</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/admin/_admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="sidebar-logo">
+        <a class="logo-badge" href="dashboard.html">
+          <span class="logo-icon">GIG</span>
+          <span class="logo-text">Panel GIG<span>Geodezyjna Izba Gospodarcza</span></span>
+        </a>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">Zarządzanie</div>
+        <a href="dashboard.html"><span class="nav-icon">▦</span> Pulpit</a>
+        <a href="formularze.html#newsletter"><span class="nav-icon">✉</span> Newsletter <span class="nav-badge" id="navBadgeNewsletter" style="display:none">0</span></a>
+        <a href="formularze.html#kontakt"><span class="nav-icon">☎</span> Kontakt <span class="nav-badge" id="navBadgeKontakt" style="display:none">0</span></a>
+        <a href="artykuly.html"><span class="nav-icon">✎</span> Artykuły</a>
+        <a href="szkolenia.html"><span class="nav-icon">▤</span> Szkolenia</a>
+        <div class="nav-section">Strona</div>
+        <a href="/szkolenia/" target="_blank"><span class="nav-icon">↗</span> Zobacz stronę</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <span class="user-avatar" id="userAvatar">A</span>
+          <div class="user-info"><div class="user-name" id="userName">admin</div><div class="user-role">Administrator</div></div>
+          <button class="btn-logout" data-action="logout" title="Wyloguj">⏻</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="admin-main">
+      <header class="admin-topbar">
+        <div class="topbar-title">Szkolenia</div>
+        <div class="topbar-actions"><button class="btn btn-primary btn-sm" id="newBtn">+ Nowe szkolenie</button></div>
+      </header>
+      <main class="admin-content">
+        <div class="card"><div class="card-body">
+          <div class="table-wrap">
+            <table class="admin-table">
+              <thead><tr><th>Termin</th><th>Tytuł</th><th>Miejsce</th><th>Status</th><th></th></tr></thead>
+              <tbody id="rows"><tr><td colspan="5" style="text-align:center;padding:24px;color:#6b7f84;">Ładowanie…</td></tr></tbody>
+            </table>
+          </div>
+        </div></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title" id="modalTitle">Nowe szkolenie</div>
+        <button class="modal-close" data-modal-close="editModal">×</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="sId">
+        <div class="form-group"><label>Tytuł szkolenia</label><input type="text" id="sTitle" class="form-control"></div>
+        <div class="grid-2">
+          <div class="form-group"><label>Data od</label><input type="date" id="sStart" class="form-control"></div>
+          <div class="form-group"><label>Data do (opcjonalnie)</label><input type="date" id="sEnd" class="form-control"></div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label>Miejsce</label><input type="text" id="sLocation" class="form-control" placeholder="np. Warszawa, ul. Czackiego 3/5"></div>
+          <div class="form-group"><label>Status</label>
+            <select id="sStatus" class="form-control">
+              <option value="published">Opublikowane (widoczne)</option>
+              <option value="draft">Szkic (ukryte)</option>
+              <option value="archived">Zarchiwizowane</option>
+            </select></div>
+        </div>
+        <label class="form-group" style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" id="sOnline" style="width:auto;"> Szkolenie online (zamiast miejsca)
+        </label>
+        <div class="form-group"><label>Opis</label><textarea id="sDesc" class="form-control" rows="5" placeholder="Program, dla kogo, czas trwania…"></textarea></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" data-modal-close="editModal">Anuluj</button>
+        <button class="btn btn-primary" id="saveBtn">Zapisz</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/admin/_admin.js"></script>
+  <script>
+    let data = [];
+    const fmtDay = iso => iso ? new Date(iso+'T00:00:00').toLocaleDateString('pl-PL',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
+
+    function termin(r){
+      if(!r.date_start) return '—';
+      return r.date_end && r.date_end!==r.date_start ? fmtDay(r.date_start)+' – '+fmtDay(r.date_end) : fmtDay(r.date_start);
+    }
+    function render(){
+      const tb=document.getElementById('rows');
+      if(!data.length){ tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:#6b7f84;">Brak szkoleń. Kliknij „+ Nowe szkolenie”.</td></tr>'; return; }
+      const badge=s=>s==='published'?'published':(s==='draft'?'draft':'archived');
+      const label=s=>s==='published'?'opublikowane':(s==='draft'?'szkic':'archiwum');
+      tb.innerHTML=data.map(r=>`
+        <tr>
+          <td style="white-space:nowrap;">${termin(r)}</td>
+          <td><strong>${esc(r.title)}</strong></td>
+          <td>${r.is_online?'<em>online</em>':esc(r.location||'—')}</td>
+          <td><span class="badge badge-${badge(r.status)}">${label(r.status)}</span></td>
+          <td class="actions">
+            <button class="btn btn-ghost btn-xs" data-edit="${r.id}">✎ Edytuj</button>
+            <button class="btn btn-danger btn-xs" data-del="${r.id}">🗑</button>
+          </td>
+        </tr>`).join('');
+      tb.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openEditor(b.dataset.edit)));
+      tb.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>del(b.dataset.del)));
+    }
+    function openEditor(id){
+      const s=id?data.find(x=>x.id===id):null;
+      modalTitle.textContent=s?'Edytuj szkolenie':'Nowe szkolenie';
+      sId.value=s?s.id:''; sTitle.value=s?s.title||'':''; sStart.value=s?s.date_start||'':''; sEnd.value=s?s.date_end||'':'';
+      sLocation.value=s?s.location||'':''; sStatus.value=s?s.status||'published':'published'; sOnline.checked=s?!!s.is_online:false; sDesc.value=s?s.description||'':'';
+      openModal('editModal');
+    }
+    async function save(){
+      const title=sTitle.value.trim();
+      if(!title){ toast('Podaj tytuł','error'); return; }
+      const rec={ title, date_start:sStart.value||null, date_end:sEnd.value||null,
+        location:sOnline.checked?null:(sLocation.value.trim()||null), is_online:sOnline.checked,
+        description:sDesc.value.trim(), status:sStatus.value, updated_at:new Date().toISOString() };
+      const btn=document.getElementById('saveBtn'); btn.disabled=true; btn.textContent='Zapisywanie…';
+      const id=sId.value;
+      const res = id ? await db.from('szkolenia').update(rec).eq('id',id) : await db.from('szkolenia').insert(rec);
+      btn.disabled=false; btn.textContent='Zapisz';
+      if(res.error){ console.error(res.error); toast('Błąd zapisu','error'); return; }
+      toast('Zapisano','success'); closeModal('editModal'); load();
+    }
+    async function del(id){
+      if(!confirm('Usunąć to szkolenie?')) return;
+      const {error}=await db.from('szkolenia').delete().eq('id',id);
+      if(error){ toast('Błąd usuwania','error'); return; }
+      toast('Usunięto','success'); load();
+    }
+    async function load(){
+      const {data:d,error}=await db.from('szkolenia').select('*').order('date_start',{ascending:false});
+      if(error){ toast('Błąd ładowania (czy uruchomiłeś supabase_szkolenia.sql?)','error'); console.error(error); return; }
+      data=d||[]; render();
+    }
+    (async()=>{
+      if(!await requireAuth()) return;
+      document.getElementById('newBtn').addEventListener('click',()=>openEditor(null));
+      document.getElementById('saveBtn').addEventListener('click',save);
+      load();
+    })();
+  </script>
+</body>
+</html>
