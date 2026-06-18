@@ -30,14 +30,9 @@
     "#gigw .gigw-nlform button{background:" + RED + ";color:#fff;border:0;border-radius:8px;padding:9px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;}" +
     "#gigw .gigw-msg{font-size:12px;margin-top:4px;}" +
     "#gigw .gigw-nlwrap{background:#fff;border:1px solid #e6ebef;border-radius:12px;padding:12px 14px;box-shadow:0 8px 26px rgba(20,40,60,.16);}" +
-    /* dropdown O nas (własny, niezależny od theme JS) */
-    "li.gig-has{position:relative;}" +
-    "li.gig-has > .gig-sub{display:none;position:absolute;top:100%;left:0;min-width:210px;background:#fff;border:1px solid #e6ebef;border-radius:10px;box-shadow:0 14px 40px rgba(20,40,60,.16);padding:8px 0;margin:6px 0 0;list-style:none;z-index:9999;}" +
-    "li.gig-has:hover > .gig-sub, li.gig-has:focus-within > .gig-sub{display:block;}" +
-    "li.gig-has > .gig-sub li{margin:0;display:block;}" +
-    "li.gig-has > .gig-sub a{display:block;padding:9px 18px;color:#16202a;font-size:14px;white-space:nowrap;text-decoration:none;}" +
-    "li.gig-has > .gig-sub a:hover{background:#f4f6f8;color:" + RED + ";}" +
-    ".gig-caret{display:inline-block;margin-left:5px;font-size:10px;vertical-align:middle;}";
+    /* gwarancja: rozwiń podmenu O nas na hover (bez odstępu), niezależnie od JS motywu */
+    "li[data-gig-dd]{position:relative;}" +
+    "li[data-gig-dd]:hover > .mfn-submenu, li[data-gig-dd]:focus-within > .mfn-submenu{display:block !important;opacity:1 !important;visibility:visible !important;pointer-events:auto !important;}";
   var st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 
   /* ---------- (1) WIDGET ---------- */
@@ -92,20 +87,26 @@
   }
 
   /* ---------- (2) MENU „O nas" → dropdown ---------- */
+  // pojedyncza pozycja podmenu w stylu motywu (mfn)
+  function subLi(href, label) {
+    return '<li class="menu-item menu-item-type-post_type menu-item-object-page mfn-menu-li">' +
+      '<a class="mfn-menu-link" href="' + href + '">' +
+      '<span class="menu-item-helper mfn-menu-item-helper"></span>' +
+      '<span class="label-wrapper mfn-menu-label-wrapper"><span class="menu-label">' + label + '</span></span>' +
+      '<span class="menu-sub mfn-menu-sub-subicon"><i class="fas fa-arrow-right"></i></span></a></li>';
+  }
+  // Zamień „O nas" w natywne menu rozwijane motywu (klasy mfn → strzałka + hover jak „Baza wiedzy")
   function enhanceMenu() {
-    var links = document.querySelectorAll('a[href$="/o-nas/"], a[href="/o-nas"], a[href$="/index.php/o-nas/"]');
+    var links = document.querySelectorAll('a.mfn-menu-link[href$="/o-nas/"], a.mfn-menu-link[href$="/index.php/o-nas/"]');
     links.forEach(function (a) {
-      var li = a.closest("li");
-      if (!li || li.dataset.gigDd) return;
-      // tylko pozycje menu (mają klasę menu-item / są w <ul>)
-      if (!li.closest("ul")) return;
+      var li = a.closest("li.mfn-menu-li, li.menu-item");
+      if (!li || li.dataset.gigDd || li.classList.contains("menu-item-has-children")) return;
       li.dataset.gigDd = "1";
-      li.classList.add("gig-has");
-      if (!a.querySelector(".gig-caret")) { var car = document.createElement("span"); car.className = "gig-caret"; car.textContent = "▾"; a.appendChild(car); }
-      var sub = document.createElement("ul");
-      sub.className = "gig-sub";
-      sub.innerHTML = '<li><a href="/o-nas/">O nas</a></li><li><a href="/czlonkowie/">Członkowie</a></li>';
-      li.appendChild(sub);
+      li.classList.add("menu-item-has-children");
+      var ul = document.createElement("ul");
+      ul.className = "sub-menu mfn-submenu";
+      ul.innerHTML = subLi("/o-nas/", "O nas") + subLi("/czlonkowie/", "Członkowie");
+      li.appendChild(ul);
     });
   }
 
