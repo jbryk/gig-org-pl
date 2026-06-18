@@ -5,8 +5,8 @@
    https://supabase.com → New project → Settings → API
    ============================================================ */
 
-const SUPABASE_URL  = 'https://TWOJ-PROJEKT.supabase.co';   // ← podmień
-const SUPABASE_ANON = 'sb_publishable_XXXXXXXXXXXX';          // ← podmień (anon)
+const SUPABASE_URL  = 'https://zlepwzeyjwpmhyxfnime.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_1KPF4mdln3C-cZHMIqAOFw_ZM8Go2Ji';
 
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON);
