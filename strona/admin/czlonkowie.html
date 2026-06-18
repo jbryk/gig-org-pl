@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Członkowie — Panel GIG</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/admin/_admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="sidebar-logo">
+        <a class="logo-badge" href="dashboard.html">
+          <span class="logo-icon">GIG</span>
+          <span class="logo-text">Panel GIG<span>Geodezyjna Izba Gospodarcza</span></span>
+        </a>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">Zarządzanie</div>
+        <a href="dashboard.html"><span class="nav-icon">▦</span> Pulpit</a>
+        <a href="formularze.html#newsletter"><span class="nav-icon">✉</span> Newsletter <span class="nav-badge" id="navBadgeNewsletter" style="display:none">0</span></a>
+        <a href="formularze.html#kontakt"><span class="nav-icon">☎</span> Kontakt <span class="nav-badge" id="navBadgeKontakt" style="display:none">0</span></a>
+        <a href="artykuly.html"><span class="nav-icon">✎</span> Artykuły</a>
+        <a href="szkolenia.html"><span class="nav-icon">▤</span> Szkolenia</a>
+        <a href="czlonkowie.html"><span class="nav-icon">⚇</span> Członkowie</a>
+        <div class="nav-section">Strona</div>
+        <a href="/czlonkowie/" target="_blank"><span class="nav-icon">↗</span> Zobacz stronę</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <span class="user-avatar" id="userAvatar">A</span>
+          <div class="user-info"><div class="user-name" id="userName">admin</div><div class="user-role">Administrator</div></div>
+          <button class="btn-logout" data-action="logout" title="Wyloguj">⏻</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="admin-main">
+      <header class="admin-topbar">
+        <div class="topbar-title">Członkowie</div>
+        <div class="topbar-actions"><button class="btn btn-primary btn-sm" id="newBtn">+ Nowy członek</button></div>
+      </header>
+      <main class="admin-content">
+        <div class="card"><div class="card-body">
+          <div class="toolbar">
+            <div class="search-box"><span class="search-icon">⌕</span>
+              <input type="text" class="form-control" id="search" placeholder="Szukaj firmy, osoby, regionu…"></div>
+            <span style="color:#6b7f84;font-size:13px;" id="cnt"></span>
+          </div>
+          <div class="table-wrap">
+            <table class="admin-table">
+              <thead><tr><th>Firma</th><th>Region</th><th>Osoba</th><th>WWW</th><th>Status</th><th></th></tr></thead>
+              <tbody id="rows"><tr><td colspan="6" style="text-align:center;padding:24px;color:#6b7f84;">Ładowanie…</td></tr></tbody>
+            </table>
+          </div>
+        </div></div>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="editModal">
+    <div class="modal-box">
+      <div class="modal-header"><div class="modal-title" id="modalTitle">Członek</div>
+        <button class="modal-close" data-modal-close="editModal">×</button></div>
+      <div class="modal-body">
+        <input type="hidden" id="cId">
+        <div class="form-group"><label>Nazwa firmy</label><input type="text" id="cName" class="form-control"></div>
+        <div class="grid-2">
+          <div class="form-group"><label>Region (województwo)</label><input type="text" id="cRegion" class="form-control"></div>
+          <div class="form-group"><label>Status</label>
+            <select id="cStatus" class="form-control"><option value="published">Opublikowany</option><option value="draft">Ukryty</option></select></div>
+        </div>
+        <div class="form-group"><label>Adres</label><input type="text" id="cAddress" class="form-control"></div>
+        <div class="grid-2">
+          <div class="form-group"><label>Osoba kontaktowa</label><input type="text" id="cPerson" class="form-control"></div>
+          <div class="form-group"><label>Telefon</label><input type="text" id="cPhone" class="form-control"></div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label>E-mail</label><input type="text" id="cEmail" class="form-control"></div>
+          <div class="form-group"><label>Strona WWW</label><input type="text" id="cWebsite" class="form-control" placeholder="np. www.firma.pl"></div>
+        </div>
+        <div class="form-group"><label>Opis (o firmie — pokaże się w szczegółach)</label><textarea id="cDesc" class="form-control" rows="4"></textarea></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" data-modal-close="editModal">Anuluj</button>
+        <button class="btn btn-primary" id="saveBtn">Zapisz</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/admin/_admin.js"></script>
+  <script>
+    let data=[];
+    function render(filter=''){
+      const f=filter.toLowerCase();
+      const rows=data.filter(r=>((r.name||'')+' '+(r.person||'')+' '+(r.region||'')).toLowerCase().includes(f));
+      const tb=document.getElementById('rows');
+      document.getElementById('cnt').textContent=data.length+' firm';
+      if(!rows.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:#6b7f84;">Brak. Uruchom supabase_czlonkowie.sql albo dodaj firmę.</td></tr>';return;}
+      tb.innerHTML=rows.map(r=>`
+        <tr>
+          <td><strong>${esc(r.name)}</strong></td>
+          <td>${esc(r.region||'—')}</td>
+          <td>${esc(r.person||'—')}</td>
+          <td>${r.website?'<span style="color:#2e7d32">✓</span>':'<span style="color:#c0392b">—</span>'}</td>
+          <td><span class="badge badge-${r.status==='published'?'published':'draft'}">${r.status==='published'?'widoczny':'ukryty'}</span></td>
+          <td class="actions">
+            <button class="btn btn-ghost btn-xs" data-edit="${r.id}">✎</button>
+            <button class="btn btn-danger btn-xs" data-del="${r.id}">🗑</button>
+          </td>
+        </tr>`).join('');
+      tb.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openEditor(b.dataset.edit)));
+      tb.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>del(b.dataset.del)));
+    }
+    function openEditor(id){
+      const r=id?data.find(x=>x.id===id):null;
+      modalTitle.textContent=r?'Edytuj członka':'Nowy członek';
+      cId.value=r?r.id:''; cName.value=r?r.name||'':''; cRegion.value=r?r.region||'':''; cAddress.value=r?r.address||'':'';
+      cPerson.value=r?r.person||'':''; cPhone.value=r?r.phone||'':''; cEmail.value=r?r.email||'':'';
+      cWebsite.value=r?r.website||'':''; cDesc.value=r?r.description||'':''; cStatus.value=r?r.status||'published':'published';
+      openModal('editModal');
+    }
+    async function save(){
+      const name=cName.value.trim(); if(!name){toast('Podaj nazwę firmy','error');return;}
+      const rec={name,region:cRegion.value.trim()||null,address:cAddress.value.trim()||null,person:cPerson.value.trim()||null,
+        phone:cPhone.value.trim()||null,email:cEmail.value.trim()||null,website:cWebsite.value.trim()||null,
+        description:cDesc.value.trim()||null,status:cStatus.value,updated_at:new Date().toISOString()};
+      const btn=document.getElementById('saveBtn');btn.disabled=true;btn.textContent='Zapisywanie…';
+      const id=cId.value;
+      const res=id?await db.from('czlonkowie').update(rec).eq('id',id):await db.from('czlonkowie').insert(rec);
+      btn.disabled=false;btn.textContent='Zapisz';
+      if(res.error){console.error(res.error);toast('Błąd zapisu (nazwa musi być unikalna?)','error');return;}
+      toast('Zapisano','success');closeModal('editModal');load();
+    }
+    async function del(id){
+      if(!confirm('Usunąć tego członka z katalogu?'))return;
+      const {error}=await db.from('czlonkowie').delete().eq('id',id);
+      if(error){toast('Błąd usuwania','error');return;}
+      toast('Usunięto','success');load();
+    }
+    async function load(){
+      const {data:d,error}=await db.from('czlonkowie').select('*').order('region').order('name');
+      if(error){toast('Błąd ładowania (uruchom supabase_czlonkowie.sql?)','error');console.error(error);return;}
+      data=d||[];render(document.getElementById('search').value);
+    }
+    (async()=>{
+      if(!await requireAuth())return;
+      document.getElementById('newBtn').addEventListener('click',()=>openEditor(null));
+      document.getElementById('saveBtn').addEventListener('click',save);
+      document.getElementById('search').addEventListener('input',e=>render(e.target.value));
+      load();
+    })();
+  </script>
+</body>
+</html>
