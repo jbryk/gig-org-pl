@@ -45,6 +45,19 @@
     .card .who{font-size:13px;color:var(--muted);}
     .card .arrow{color:var(--red);font-weight:700;font-size:13px;margin-top:10px;display:inline-block;}
     .empty{text-align:center;color:var(--muted);padding:40px;}
+    /* mapa */
+    .maphint{text-align:center;color:var(--muted);font-size:14px;margin:20px 0 4px;}
+    .mapwrap{max-width:680px;margin:0 auto;}
+    .mapwrap svg{width:100%;height:auto;display:block;}
+    .region-path{fill:#e6ebef;stroke:#fff;stroke-width:1;transition:fill .15s;}
+    .region-path.has{cursor:pointer;}
+    .region-path.b1{fill:#eaa6b2;}.region-path.b2{fill:#d6536b;}.region-path.b3{fill:#cc0a2b;}
+    .region-path.has:hover,.region-path.active{fill:#8f061d;}
+    .maplegend{text-align:center;font-size:12px;color:var(--muted);margin:8px 0 0;}
+    .maptip{position:fixed;pointer-events:none;background:#16202a;color:#fff;font-size:12.5px;padding:5px 9px;border-radius:6px;opacity:0;transition:opacity .1s;z-index:60;white-space:nowrap;}
+    .mapreset{display:none;text-align:center;margin:12px 0 0;}
+    .mapreset button{background:#fff;border:1px solid var(--line);border-radius:20px;padding:7px 18px;font:inherit;font-size:13px;color:var(--ink);cursor:pointer;}
+    .mapreset button:hover{border-color:var(--red);color:var(--red);}
     /* modal */
     .ov{position:fixed;inset:0;background:rgba(12,18,24,.55);display:none;align-items:center;justify-content:center;z-index:90;padding:20px;}
     .ov.open{display:flex;}
@@ -88,6 +101,14 @@
     </div></section>
 
     <div class="wrap">
+      <p class="maphint">Kliknij województwo, aby zobaczyć firmy członkowskie z regionu.</p>
+      <div class="mapwrap" id="mapwrap"></div>
+      <div class="maplegend">Im ciemniejszy kolor — tym więcej firm. Szare województwa: brak firm członkowskich.</div>
+      <div class="mapreset" id="mapreset"><button id="mapresetbtn">↺ Pokaż wszystkie</button></div>
+      <div class="maptip" id="maptip"></div>
+    </div>
+
+    <div class="wrap">
       <div class="toolbar"><input type="search" id="szukaj" placeholder="Szukaj firmy, osoby lub miejscowości…" aria-label="Szukaj"></div>
       <div class="count" id="count"></div>
       <div id="lista"><div class="empty">Ładowanie listy członków…</div></div>
@@ -114,6 +135,7 @@
     </div>
   </div>
 
+  <script src="/_assets/js/mapa-data.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     var SUPABASE_URL="https://zlepwzeyjwpmhyxfnime.supabase.co";
@@ -173,7 +195,40 @@
       if(!q) return render(ALL);
       render(ALL.filter(function(r){return (r.name+' '+(r.person||'')+' '+(r.region||'')+' '+(r.address||'')).toLowerCase().indexOf(q)>=0;}));
     }
-    document.getElementById('szukaj').addEventListener('input',applyFilter);
+    document.getElementById('szukaj').addEventListener('input',function(){ applyFilter(); clearMapSel(); });
+
+    /* ---- MAPA województw ---- */
+    function clearMapSel(){
+      document.querySelectorAll('#mapwrap path.active').forEach(function(p){p.classList.remove('active');});
+      var r=document.getElementById('mapreset'); if(r) r.style.display='none';
+    }
+    function selectRegion(name,path){
+      document.getElementById('szukaj').value='';
+      render(ALL.filter(function(r){return (r.region||'')===name;}));
+      document.querySelectorAll('#mapwrap path.active').forEach(function(p){p.classList.remove('active');});
+      if(path) path.classList.add('active');
+      document.getElementById('mapreset').style.display='block';
+      var t=document.querySelector('.toolbar'); if(t) t.scrollIntoView({behavior:'smooth',block:'center'});
+    }
+    function buildMap(items){
+      var box=document.getElementById('mapwrap');
+      if(!box||!window.GIG_MAPA){ if(box) box.style.display='none'; return; }
+      var counts={}; items.forEach(function(r){var k=(r.region||'').toLowerCase(); counts[k]=(counts[k]||0)+1;});
+      var svg='<svg viewBox="'+GIG_MAPA.viewBox+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mapa województw z firmami członkowskimi GIG">';
+      GIG_MAPA.regions.forEach(function(reg){
+        var c=counts[reg.slug]||0;
+        var cls='region-path'+(c?(' has '+(c>=8?'b3':c>=4?'b2':'b1')):'');
+        svg+='<path d="'+reg.d+'" class="'+cls+'" data-name="'+esc(reg.name)+'" data-c="'+c+'"></path>';
+      });
+      box.innerHTML=svg+'</svg>';
+      var tip=document.getElementById('maptip');
+      box.querySelectorAll('path.has').forEach(function(p){
+        p.addEventListener('click',function(){ selectRegion(p.getAttribute('data-name'),p); });
+        p.addEventListener('mousemove',function(e){ tip.textContent=p.getAttribute('data-name')+' — '+p.getAttribute('data-c')+' firm'; tip.style.opacity='1'; tip.style.left=(e.clientX+12)+'px'; tip.style.top=(e.clientY+14)+'px'; });
+        p.addEventListener('mouseleave',function(){ tip.style.opacity='0'; });
+      });
+    }
+    (function(){ var rb=document.getElementById('mapresetbtn'); if(rb) rb.addEventListener('click',function(){ document.getElementById('szukaj').value=''; applyFilter(); clearMapSel(); }); })();
 
     (async function(){
       try{
@@ -183,6 +238,7 @@
         ALL=res.data||[];
         if(!ALL.length){ document.getElementById('lista').innerHTML='<div class="empty">Lista członków jest aktualizowana. Zapraszamy wkrótce.</div>'; return; }
         render(ALL);
+        buildMap(ALL);
       }catch(e){
         console.error(e);
         document.getElementById('lista').innerHTML='<div class="empty">Lista członków jest właśnie aktualizowana — zapraszamy wkrótce lub <a href="/kontakt/">napisz do nas</a>.</div>';
