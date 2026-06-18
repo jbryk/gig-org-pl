@@ -20,3 +20,6 @@ __pycache__/
 
 # Zależności
 node_modules/
+
+# Źródłowe zdjęcia (oryginały — nie publikujemy; w deployu są wersje z _assets/img)
+_zdjecia-zrodlowe/
