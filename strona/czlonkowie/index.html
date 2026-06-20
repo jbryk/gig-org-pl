@@ -68,6 +68,7 @@
     .gig-reglabel{background:transparent;border:0;}
     .gig-reglabel .rl{border:1.5px solid rgba(22,32,42,.5);border-radius:9px;padding:3px 9px;text-align:center;line-height:1.1;box-shadow:0 2px 8px rgba(20,40,60,.3);cursor:pointer;white-space:nowrap;}
     .gig-reglabel .rl b{display:block;font-size:11.5px;color:#16202a;font-weight:800;}
+    .gig-reglabel .rl em{display:block;font-size:10.5px;color:#9a1228;font-weight:700;font-style:normal;margin-top:1px;}
     .gig-reglabel .rl span{font-size:10px;color:#16202a;font-weight:700;opacity:.8;}
     .gig-reglabel .rl:hover{box-shadow:0 4px 14px rgba(20,40,60,.45);}
     /* dymek (popup) */
@@ -253,10 +254,10 @@
       'łódzkie':'se','świętokrzyskie':'se','małopolskie':'se','podkarpackie':'se'
     };
     var REGION_INFO={
-      nw:{name:'Region Północno-Zachodni', short:'Płn.-Zachodni', color:'#f2cf4a', center:[52.85,15.75]},
-      ne:{name:'Region Północno-Wschodni', short:'Płn.-Wschodni', color:'#efa45c', center:[53.55,20.9]},
-      s :{name:'Region Południowy',         short:'Południowy',    color:'#7cbf6b', center:[50.72,17.35]},
-      se:{name:'Region Południowo-Wschodni', short:'Płd.-Wschodni', color:'#8093c9', center:[50.35,20.7]}
+      nw:{name:'Region Północno-Zachodni', short:'Płn.-Zachodni', color:'#f2cf4a', center:[52.85,15.75], rep:null},
+      ne:{name:'Region Północno-Wschodni', short:'Płn.-Wschodni', color:'#efa45c', center:[53.55,20.9], rep:null},
+      s :{name:'Region Południowy',         short:'Południowy',    color:'#7cbf6b', center:[50.72,17.35], rep:'Dawid Sienkiewicz', repFirm:'EXIGEO Sp. z o.o.', repDate:'21.01.2026'},
+      se:{name:'Region Południowo-Wschodni', short:'Płd.-Wschodni', color:'#8093c9', center:[50.35,20.7], rep:'Daniel Ruszała', repFirm:'GLOB-KART', repDate:'10.02.2026'}
     };
     function regKey(nm){ return GIG_REGIONS[(nm||'').toLowerCase()]||null; }
     function wojStyle(nm){
@@ -321,23 +322,32 @@
           style:function(f){ return wojStyle(f.properties.nazwa); },
           onEachFeature:function(f,layer){
             var nm=f.properties.nazwa; wojByName[nm]=layer;
-            var rk=regKey(nm);
+            var rk=regKey(nm), rinfo=rk?REGION_INFO[rk]:null;
             layer.on('click',function(){ selectRegion(nm); });
             layer.on('mouseover',function(){ layer.setStyle({weight:2,color:'#16202a'}); });
             layer.on('mouseout', function(){ if(nm!==selectedRegion) layer.setStyle(wojStyle(nm)); });
             layer.bindTooltip('<b>'+(regionProper[nm]||cap(nm))+'</b> — '+(countByRegion[nm]||0)+' firm'+
-              (rk?'<br><span style="color:#cc0a2b;font-weight:700">'+REGION_INFO[rk].name+'</span>':''),{sticky:true});
+              (rinfo?'<br><span style="color:#cc0a2b;font-weight:700">'+esc(rinfo.name)+'</span>'+
+                (rinfo.rep?'<br>Przedst.: '+esc(rinfo.rep):'<br><i>przedst. w wyborze</i>'):''),{sticky:true});
           }
         }).addTo(map);
-        // etykiety 4 regionów GIG (klik = filtr całego regionu + zoom)
+        // etykiety 4 regionów GIG (region + Przedstawiciel Regionalny + liczba firm; klik = filtr regionu)
+        var wojOfRegion={};
+        Object.keys(GIG_REGIONS).forEach(function(w){ (wojOfRegion[GIG_REGIONS[w]]=wojOfRegion[GIG_REGIONS[w]]||[]).push(regionProper[w]||cap(w)); });
         Object.keys(REGION_INFO).forEach(function(rk){
           var info=REGION_INFO[rk], tot=0;
           Object.keys(GIG_REGIONS).forEach(function(w){ if(GIG_REGIONS[w]===rk) tot+=(countByRegion[w]||0); });
-          var ic=L.divIcon({className:'gig-reglabel',iconSize:[118,32],iconAnchor:[59,16],
-            html:'<div class="rl" style="background:'+info.color+'"><b>'+info.short+'</b><span>'+tot+' firm</span></div>'});
+          var repLbl = info.rep ? esc(info.rep) : '<i style="opacity:.85">przedstawiciel w wyborze</i>';
+          var ic=L.divIcon({className:'gig-reglabel',iconSize:[156,48],iconAnchor:[78,24],
+            html:'<div class="rl" style="background:'+info.color+'"><b>'+info.short+'</b><em>'+repLbl+'</em><span>'+tot+' firm</span></div>'});
+          var tip='<b>'+esc(info.name)+'</b><br>Przedstawiciel Regionalny: '+
+            (info.rep ? '<b>'+esc(info.rep)+'</b>'+(info.repFirm?' ('+esc(info.repFirm)+')':'')+(info.repDate?', wyb. '+info.repDate:'')
+                      : '<i>w trakcie wyboru</i>')+
+            '<br>Województwa: '+esc((wojOfRegion[rk]||[]).join(', '))+
+            '<br>Firmy: '+tot+' · <span style="color:#cc0a2b">kliknij, aby pokazać region</span>';
           L.marker(info.center,{icon:ic,zIndexOffset:400,riseOnHover:true}).addTo(map)
             .on('click',function(){ selectGigRegion(rk); })
-            .bindTooltip(info.name+' — kliknij, aby pokazać cały region',{direction:'top'});
+            .bindTooltip(tip,{direction:'top',offset:[0,-10]});
         });
       }
       var grp=(typeof L.markerClusterGroup==='function')?L.markerClusterGroup({maxClusterRadius:38,spiderfyOnMaxZoom:true}):L.layerGroup();
