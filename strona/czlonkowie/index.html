@@ -63,6 +63,12 @@
     /* markery */
     .gig-pin{background:var(--red);border:2px solid #fff;border-radius:50%;box-shadow:0 1px 5px rgba(0,0,0,.45);}
     .gig-hq{background:#16202a;border:3px solid #ffd23f;border-radius:50%;color:#ffd23f;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 9px rgba(0,0,0,.5);}
+    /* etykiety regionów GIG */
+    .gig-reglabel{background:transparent;border:0;}
+    .gig-reglabel .rl{border:1.5px solid rgba(22,32,42,.5);border-radius:9px;padding:3px 9px;text-align:center;line-height:1.1;box-shadow:0 2px 8px rgba(20,40,60,.3);cursor:pointer;white-space:nowrap;}
+    .gig-reglabel .rl b{display:block;font-size:11.5px;color:#16202a;font-weight:800;}
+    .gig-reglabel .rl span{font-size:10px;color:#16202a;font-weight:700;opacity:.8;}
+    .gig-reglabel .rl:hover{box-shadow:0 4px 14px rgba(20,40,60,.45);}
     /* dymek (popup) */
     .leaflet-popup-content{margin:13px 15px;font-family:Inter,-apple-system,'Segoe UI',Arial,sans-serif;font-size:13px;line-height:1.5;}
     .gig-pop h4{margin:0 0 3px;font-size:15px;color:var(--ink);line-height:1.3;}
@@ -122,9 +128,14 @@
       <p class="maphint">Mapa firm członkowskich — kliknij <b>pinezkę</b>, aby zobaczyć dane firmy, lub <b>województwo</b>, aby przybliżyć region i zawęzić listę.</p>
       <div id="map"></div>
       <div class="maplegend">
-        <span><i class="lg-hq"></i> Siedziba Izby (Warszawa)</span>
+        <span><i class="lg-hq"></i> Siedziba Izby</span>
         <span><i class="lg-pin"></i> Firma członkowska</span>
-        <span><i style="background:#eaa6b2"></i><i style="background:#d6536b"></i><i style="background:#cc0a2b"></i> Liczba firm w województwie</span>
+        <span style="flex-basis:100%;height:0"></span>
+        <span style="color:#5b6770;font-weight:600">Regiony GIG:</span>
+        <span><i style="background:#f2cf4a"></i> Płn.-Zachodni</span>
+        <span><i style="background:#efa45c"></i> Płn.-Wschodni</span>
+        <span><i style="background:#7cbf6b"></i> Południowy</span>
+        <span><i style="background:#8093c9"></i> Płd.-Wschodni</span>
       </div>
       <div class="mapreset" id="mapreset"><button id="mapresetbtn">↺ Pokaż całą Polskę</button></div>
     </div>
@@ -232,8 +243,24 @@
     /* ---- MAPA Leaflet (siedziba GIG + pinezki firm + zoom województw) ---- */
     var map=null, wojByName={}, pinByName={}, countByRegion={}, regionProper={}, selectedRegion=null;
     function cap(s){ return s? s.charAt(0).toUpperCase()+s.slice(1):s; }
-    function wojColor(c){ return c>=8?'#cc0a2b':c>=4?'#d6536b':c>=1?'#eaa6b2':'#dfe5ea'; }
-    function wojStyle(nm){ var c=countByRegion[nm]||0; return {fillColor:wojColor(c), fillOpacity:c?0.42:0.16, color:'#ffffff', weight:1}; }
+    /* Podział GIG na 4 regiony (przedstawiciele regionalni) — wg mapy Izby */
+    var GIG_REGIONS={
+      'zachodniopomorskie':'nw','lubuskie':'nw','wielkopolskie':'nw',
+      'pomorskie':'ne','warmińsko-mazurskie':'ne','kujawsko-pomorskie':'ne','podlaskie':'ne','mazowieckie':'ne','lubelskie':'ne',
+      'dolnośląskie':'s','opolskie':'s','śląskie':'s',
+      'łódzkie':'se','świętokrzyskie':'se','małopolskie':'se','podkarpackie':'se'
+    };
+    var REGION_INFO={
+      nw:{name:'Region Północno-Zachodni', short:'Płn.-Zachodni', color:'#f2cf4a', center:[52.85,15.75]},
+      ne:{name:'Region Północno-Wschodni', short:'Płn.-Wschodni', color:'#efa45c', center:[53.55,20.9]},
+      s :{name:'Region Południowy',         short:'Południowy',    color:'#7cbf6b', center:[50.72,17.35]},
+      se:{name:'Region Południowo-Wschodni', short:'Płd.-Wschodni', color:'#8093c9', center:[50.35,20.7]}
+    };
+    function regKey(nm){ return GIG_REGIONS[(nm||'').toLowerCase()]||null; }
+    function wojStyle(nm){
+      var rk=regKey(nm), col=rk?REGION_INFO[rk].color:'#dfe5ea', has=(countByRegion[nm]||0)>0;
+      return {fillColor:col, fillOpacity:has?0.58:0.34, color:'#ffffff', weight:1};
+    }
 
     function popupHtml(r){
       var www=val(r.website);
@@ -260,6 +287,19 @@
       if(ly){ if(ly.setStyle) ly.setStyle({weight:3,color:'#cc0a2b',fillOpacity:.12}); if(map&&ly.getBounds){ map.invalidateSize(); map.fitBounds(ly.getBounds(),{padding:[24,24]}); } }
       document.getElementById('mapreset').style.display='block';
     }
+    function selectGigRegion(rk){
+      selectedRegion=null;
+      document.getElementById('szukaj').value='';
+      render(ALL.filter(function(r){ return regKey(r.region)===rk; }));
+      var bounds=L.latLngBounds([]);
+      Object.keys(wojByName).forEach(function(k){
+        var ly=wojByName[k];
+        if(regKey(k)===rk){ if(ly.setStyle) ly.setStyle({weight:2.5,color:'#16202a',fillOpacity:.66}); if(ly.getBounds) bounds.extend(ly.getBounds()); }
+        else if(ly.setStyle){ ly.setStyle(wojStyle(k)); }
+      });
+      if(bounds.isValid() && map){ map.invalidateSize(); map.fitBounds(bounds,{padding:[20,20]}); }
+      document.getElementById('mapreset').style.display='block';
+    }
     function buildMap(items){
       var el=document.getElementById('map');
       if(!el||typeof L==='undefined'){ if(el) el.style.display='none'; return; }
@@ -272,12 +312,24 @@
           style:function(f){ return wojStyle(f.properties.nazwa); },
           onEachFeature:function(f,layer){
             var nm=f.properties.nazwa; wojByName[nm]=layer;
+            var rk=regKey(nm);
             layer.on('click',function(){ selectRegion(nm); });
-            layer.on('mouseover',function(){ layer.setStyle({weight:2,color:'#8f061d'}); });
+            layer.on('mouseover',function(){ layer.setStyle({weight:2,color:'#16202a'}); });
             layer.on('mouseout', function(){ if(nm!==selectedRegion) layer.setStyle(wojStyle(nm)); });
-            layer.bindTooltip((regionProper[nm]||cap(nm))+' — '+(countByRegion[nm]||0)+' firm',{sticky:true});
+            layer.bindTooltip('<b>'+(regionProper[nm]||cap(nm))+'</b> — '+(countByRegion[nm]||0)+' firm'+
+              (rk?'<br><span style="color:#cc0a2b;font-weight:700">'+REGION_INFO[rk].name+'</span>':''),{sticky:true});
           }
         }).addTo(map);
+        // etykiety 4 regionów GIG (klik = filtr całego regionu + zoom)
+        Object.keys(REGION_INFO).forEach(function(rk){
+          var info=REGION_INFO[rk], tot=0;
+          Object.keys(GIG_REGIONS).forEach(function(w){ if(GIG_REGIONS[w]===rk) tot+=(countByRegion[w]||0); });
+          var ic=L.divIcon({className:'gig-reglabel',iconSize:[118,32],iconAnchor:[59,16],
+            html:'<div class="rl" style="background:'+info.color+'"><b>'+info.short+'</b><span>'+tot+' firm</span></div>'});
+          L.marker(info.center,{icon:ic,zIndexOffset:400,riseOnHover:true}).addTo(map)
+            .on('click',function(){ selectGigRegion(rk); })
+            .bindTooltip(info.name+' — kliknij, aby pokazać cały region',{direction:'top'});
+        });
       }
       var grp=(typeof L.markerClusterGroup==='function')?L.markerClusterGroup({maxClusterRadius:38,spiderfyOnMaxZoom:true}):L.layerGroup();
       var pinIcon=L.divIcon({className:'gig-pin',iconSize:[15,15],iconAnchor:[7,7],popupAnchor:[0,-7]});
@@ -309,7 +361,8 @@
         ['website','facebook','linkedin','description','nip','regon','krs'].forEach(function(k){
           if(!val(r[k]) && e[k]!=null && String(e[k]).toLowerCase()!=='brak') r[k]=e[k];
         });
-        if((r.lat==null||r.lng==null) && e.lat!=null){ r.lat=e.lat; r.lng=e.lng; }
+        // współrzędne: statyczny plik to źródło prawdy dla mapy (dokładny geokoder po adresie)
+        if(e.lat!=null){ r.lat=e.lat; r.lng=e.lng; }
       });
     }
     (async function(){
