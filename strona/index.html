@@ -1376,8 +1376,8 @@ form input.display-none{display:none!important}
 <div class="elementor-counter">
 <div class="elementor-counter-number-wrapper">
 <span class="elementor-counter-number-prefix"></span>
-<span class="elementor-counter-number" data-delimiter="," data-duration="2000" data-from-value="0" data-to-value="65">0</span>
-<span class="elementor-counter-number-suffix">+</span>
+<span class="elementor-counter-number" data-delimiter="," data-duration="2000" data-from-value="65" data-to-value="65">65</span>
+<span class="elementor-counter-number-suffix"></span>
 </div>
 </div>
 </div>
@@ -1387,8 +1387,8 @@ form input.display-none{display:none!important}
 <div class="elementor-counter">
 <div class="elementor-counter-number-wrapper">
 <span class="elementor-counter-number-prefix"></span>
-<span class="elementor-counter-number" data-delimiter="," data-duration="2000" data-from-value="0" data-to-value="30">0</span>
-<span class="elementor-counter-number-suffix">+</span>
+<span class="elementor-counter-number" data-delimiter="," data-duration="2000" data-from-value="32" data-to-value="32" id="gig-lata-doswiadczenia">32</span>
+<span class="elementor-counter-number-suffix"></span>
 </div>
 </div>
 </div>
@@ -1702,6 +1702,25 @@ var elementorFrontendConfig = {"environmentMode":{"edit":false,"wpPreview":false
 <script id="mfn-beforeafter-js" src="/wp-content/themes/betheme/js/plugins/beforeafter.min.js"></script>
 <script data-gig-forms="1" defer="" src="/_assets/js/forms_integration.js"></script>
 <script defer src="/_assets/js/gig-lightbox.js"></script><script defer src="/_assets/js/gig-site.js"></script>
+<script>
+/* GIG: statyczne liczniki — 65 firm + lata auto od 1994 (bez zależności od animacji Elementora) */
+(function(){
+  var FOUNDED=1994;
+  function fix(){
+    var lata=Math.max(0,new Date().getFullYear()-FOUNDED);
+    var el=document.getElementById('gig-lata-doswiadczenia');
+    if(el){ el.textContent=String(lata); el.setAttribute('data-from-value',lata); el.setAttribute('data-to-value',lata); }
+    // upewnij się, że liczniki nie zostają na 0 (gdyby animacja jednak ruszyła)
+    document.querySelectorAll('.elementor-counter-number').forEach(function(n){
+      var to=n.getAttribute('data-to-value'); if(to && n.textContent.trim()!==to) n.textContent=to;
+    });
+    document.querySelectorAll('.elementor-counter-number-suffix').forEach(function(s){ s.textContent=''; });
+  }
+  fix();
+  document.addEventListener('DOMContentLoaded',fix);
+  window.addEventListener('load',function(){ setTimeout(fix,400); setTimeout(fix,1600); });
+})();
+</script>
 </body>
 </html>
 <!-- Page supported by LiteSpeed Cache 7.8.0.1 on 2026-06-17 20:18:11 -->
