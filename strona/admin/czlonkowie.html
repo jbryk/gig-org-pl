@@ -82,7 +82,20 @@
           <div class="form-group"><label>E-mail</label><input type="text" id="cEmail" class="form-control"></div>
           <div class="form-group"><label>Strona WWW</label><input type="text" id="cWebsite" class="form-control" placeholder="np. www.firma.pl"></div>
         </div>
-        <div class="form-group"><label>Opis (o firmie — pokaże się w szczegółach)</label><textarea id="cDesc" class="form-control" rows="4"></textarea></div>
+        <div class="grid-2">
+          <div class="form-group"><label>NIP</label><input type="text" id="cNip" class="form-control" placeholder="z GUS"></div>
+          <div class="form-group"><label>REGON</label><input type="text" id="cRegon" class="form-control" placeholder="z GUS"></div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label>KRS</label><input type="text" id="cKrs" class="form-control" placeholder="z GUS (jeśli spółka)"></div>
+          <div class="form-group"><label>Facebook (URL)</label><input type="text" id="cFb" class="form-control" placeholder="https://facebook.com/…"></div>
+        </div>
+        <div class="form-group"><label>LinkedIn (URL)</label><input type="text" id="cLi" class="form-control" placeholder="https://linkedin.com/company/…"></div>
+        <div class="grid-2">
+          <div class="form-group"><label>Szer. geogr. (lat)</label><input type="text" id="cLat" class="form-control" placeholder="np. 52.23"></div>
+          <div class="form-group"><label>Dł. geogr. (lng)</label><input type="text" id="cLng" class="form-control" placeholder="np. 21.01"></div>
+        </div>
+        <div class="form-group"><label>Opis (profil działalności — pokaże się w szczegółach i dymku mapy)</label><textarea id="cDesc" class="form-control" rows="4"></textarea></div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-ghost" data-modal-close="editModal">Anuluj</button>
@@ -122,12 +135,18 @@
       cId.value=r?r.id:''; cName.value=r?r.name||'':''; cRegion.value=r?r.region||'':''; cAddress.value=r?r.address||'':'';
       cPerson.value=r?r.person||'':''; cPhone.value=r?r.phone||'':''; cEmail.value=r?r.email||'':'';
       cWebsite.value=r?r.website||'':''; cDesc.value=r?r.description||'':''; cStatus.value=r?r.status||'published':'published';
+      cNip.value=r?r.nip||'':''; cRegon.value=r?r.regon||'':''; cKrs.value=r?r.krs||'':'';
+      cFb.value=r?r.facebook||'':''; cLi.value=r?r.linkedin||'':'';
+      cLat.value=(r&&r.lat!=null)?r.lat:''; cLng.value=(r&&r.lng!=null)?r.lng:'';
       openModal('editModal');
     }
     async function save(){
       const name=cName.value.trim(); if(!name){toast('Podaj nazwę firmy','error');return;}
+      const num=v=>{v=(v||'').trim().replace(',','.');return v&&!isNaN(+v)?+v:null;};
       const rec={name,region:cRegion.value.trim()||null,address:cAddress.value.trim()||null,person:cPerson.value.trim()||null,
         phone:cPhone.value.trim()||null,email:cEmail.value.trim()||null,website:cWebsite.value.trim()||null,
+        nip:cNip.value.trim()||null,regon:cRegon.value.trim()||null,krs:cKrs.value.trim()||null,
+        facebook:cFb.value.trim()||null,linkedin:cLi.value.trim()||null,lat:num(cLat.value),lng:num(cLng.value),
         description:cDesc.value.trim()||null,status:cStatus.value,updated_at:new Date().toISOString()};
       const btn=document.getElementById('saveBtn');btn.disabled=true;btn.textContent='Zapisywanie…';
       const id=cId.value;

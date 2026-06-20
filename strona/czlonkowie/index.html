@@ -11,6 +11,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"></noscript>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
   <style>
     :root{--red:#cc0a2b;--ink:#16202a;--muted:#6b7884;--line:#e6ebef;--bg:#f4f6f8;}
     *{box-sizing:border-box;}
@@ -45,19 +48,29 @@
     .card .who{font-size:13px;color:var(--muted);}
     .card .arrow{color:var(--red);font-weight:700;font-size:13px;margin-top:10px;display:inline-block;}
     .empty{text-align:center;color:var(--muted);padding:40px;}
-    /* mapa */
-    .maphint{text-align:center;color:var(--muted);font-size:14px;margin:20px 0 4px;}
-    .mapwrap{max-width:680px;margin:0 auto;}
-    .mapwrap svg{width:100%;height:auto;display:block;}
-    .region-path{fill:#e6ebef;stroke:#fff;stroke-width:1;transition:fill .15s;}
-    .region-path.has{cursor:pointer;}
-    .region-path.b1{fill:#eaa6b2;}.region-path.b2{fill:#d6536b;}.region-path.b3{fill:#cc0a2b;}
-    .region-path.has:hover,.region-path.active{fill:#8f061d;}
-    .maplegend{text-align:center;font-size:12px;color:var(--muted);margin:8px 0 0;}
-    .maptip{position:fixed;pointer-events:none;background:#16202a;color:#fff;font-size:12.5px;padding:5px 9px;border-radius:6px;opacity:0;transition:opacity .1s;z-index:60;white-space:nowrap;}
+    /* mapa Leaflet */
+    .maphint{text-align:center;color:var(--muted);font-size:14px;margin:20px 0 10px;}
+    #map{height:520px;border-radius:14px;border:1px solid var(--line);overflow:hidden;z-index:1;background:#eef2f4;}
+    @media(max-width:760px){#map{height:420px;}}
+    .maplegend{display:flex;justify-content:center;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--muted);margin:10px 0 0;}
+    .maplegend span{display:inline-flex;align-items:center;gap:6px;}
+    .maplegend i{width:13px;height:13px;border-radius:3px;display:inline-block;}
+    .lg-pin{width:13px;height:13px;border-radius:50%;background:var(--red);border:2px solid #fff;box-shadow:0 0 2px rgba(0,0,0,.4);}
+    .lg-hq{width:15px;height:15px;border-radius:50%;background:#16202a;border:2px solid #ffd23f;}
     .mapreset{display:none;text-align:center;margin:12px 0 0;}
     .mapreset button{background:#fff;border:1px solid var(--line);border-radius:20px;padding:7px 18px;font:inherit;font-size:13px;color:var(--ink);cursor:pointer;}
     .mapreset button:hover{border-color:var(--red);color:var(--red);}
+    /* markery */
+    .gig-pin{background:var(--red);border:2px solid #fff;border-radius:50%;box-shadow:0 1px 5px rgba(0,0,0,.45);}
+    .gig-hq{background:#16202a;border:3px solid #ffd23f;border-radius:50%;color:#ffd23f;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 9px rgba(0,0,0,.5);}
+    /* dymek (popup) */
+    .leaflet-popup-content{margin:13px 15px;font-family:Inter,-apple-system,'Segoe UI',Arial,sans-serif;font-size:13px;line-height:1.5;}
+    .gig-pop h4{margin:0 0 3px;font-size:15px;color:var(--ink);line-height:1.3;}
+    .gig-pop .pr{color:var(--red);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;}
+    .gig-pop .pl-row{margin:3px 0;color:var(--ink);}
+    .gig-pop .pl-row b{color:var(--muted);font-weight:600;}
+    .gig-pop .pl-more{display:inline-block;margin-top:9px;background:var(--red);color:#fff;font-weight:700;padding:7px 13px;border-radius:8px;cursor:pointer;font-size:12.5px;}
+    .gig-pop .pl-more:hover{filter:brightness(.92);}
     /* modal */
     .ov{position:fixed;inset:0;background:rgba(12,18,24,.55);display:none;align-items:center;justify-content:center;z-index:90;padding:20px;}
     .ov.open{display:flex;}
@@ -71,8 +84,13 @@
     .modal-body dt{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:700;margin-top:14px;}
     .modal-body dt:first-child{margin-top:0;}
     .modal-body dd{margin:3px 0 0;font-size:15px;}
-    .modal-www{display:inline-block;margin-top:18px;background:var(--red);color:#fff;font-weight:700;padding:11px 20px;border-radius:9px;}
+    .modal-acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;}
+    .modal-www{display:inline-block;background:var(--red);color:#fff;font-weight:700;padding:11px 20px;border-radius:9px;}
     .modal-www:hover{filter:brightness(.92);text-decoration:none;color:#fff;}
+    .modal-soc{display:inline-flex;align-items:center;gap:7px;font-weight:700;padding:11px 16px;border-radius:9px;color:#fff;}
+    .modal-soc:hover{filter:brightness(.93);text-decoration:none;color:#fff;}
+    .modal-soc.fb{background:#1877f2;} .modal-soc.li{background:#0a66c2;}
+    .modal-body dd a.inl{word-break:break-all;}
     /* footer */
     .site-foot{background:var(--ink);color:rgba(255,255,255,.75);margin-top:50px;padding:40px 0 26px;}
     .foot-in{display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap;}
@@ -101,11 +119,14 @@
     </div></section>
 
     <div class="wrap">
-      <p class="maphint">Kliknij województwo, aby zobaczyć firmy członkowskie z regionu.</p>
-      <div class="mapwrap" id="mapwrap"></div>
-      <div class="maplegend">Im ciemniejszy kolor — tym więcej firm. Szare województwa: brak firm członkowskich.</div>
-      <div class="mapreset" id="mapreset"><button id="mapresetbtn">↺ Pokaż wszystkie</button></div>
-      <div class="maptip" id="maptip"></div>
+      <p class="maphint">Mapa firm członkowskich — kliknij <b>pinezkę</b>, aby zobaczyć dane firmy, lub <b>województwo</b>, aby przybliżyć region i zawęzić listę.</p>
+      <div id="map"></div>
+      <div class="maplegend">
+        <span><i class="lg-hq"></i> Siedziba Izby (Warszawa)</span>
+        <span><i class="lg-pin"></i> Firma członkowska</span>
+        <span><i style="background:#eaa6b2"></i><i style="background:#d6536b"></i><i style="background:#cc0a2b"></i> Liczba firm w województwie</span>
+      </div>
+      <div class="mapreset" id="mapreset"><button id="mapresetbtn">↺ Pokaż całą Polskę</button></div>
     </div>
 
     <div class="wrap">
@@ -131,11 +152,14 @@
     <div class="modal" role="dialog" aria-modal="true">
       <div class="modal-top"><button class="modal-x" id="mx" aria-label="Zamknij">×</button>
         <h3 id="mName"></h3><div class="reg" id="mReg"></div></div>
-      <div class="modal-body"><dl id="mBody"></dl><div id="mWww"></div></div>
+      <div class="modal-body"><dl id="mBody"></dl><div class="modal-acts" id="mActs"></div></div>
     </div>
   </div>
 
-  <script src="/_assets/js/mapa-data.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script src="/_assets/js/woj-geojson.js"></script>
+  <script src="/_assets/js/czlonkowie-enrich.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     var SUPABASE_URL="https://zlepwzeyjwpmhyxfnime.supabase.co";
@@ -143,19 +167,27 @@
     var esc=function(s){return (s==null?"":String(s)).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");};
     var ALL=[];
 
+    function val(v){ v=(v==null?'':String(v)).trim(); return (v && v.toLowerCase()!=='brak')?v:''; }
+    function httpify(u){ return /^https?:/i.test(u)?u:'https://'+u; }
     function openModal(r){
       document.getElementById('mName').textContent=r.name;
-      document.getElementById('mReg').textContent=[r.region, r.is_online?'':''].filter(Boolean).join('');
-      var rows=[];
-      if(r.address) rows.push(['Adres', esc(r.address)]);
-      if(r.person) rows.push(['Osoba kontaktowa', esc(r.person)]);
-      if(r.phone) rows.push(['Telefon', '<a href="tel:'+esc(r.phone.replace(/[^0-9+]/g,''))+'">'+esc(r.phone)+'</a>']);
-      if(r.email) rows.push(['E-mail', '<a href="mailto:'+esc(r.email)+'">'+esc(r.email)+'</a>']);
-      if(r.description) rows.push(['O firmie', esc(r.description)]);
+      document.getElementById('mReg').textContent=r.region||'';
+      var rows=[], www=val(r.website);
+      if(val(r.description)) rows.push(['Profil działalności', esc(r.description)]);
+      if(val(r.address)) rows.push(['Adres', esc(r.address)]);
+      if(val(r.person)) rows.push(['Osoba kontaktowa', esc(r.person)]);
+      if(val(r.phone)) rows.push(['Telefon', '<a href="tel:'+esc(r.phone.replace(/[^0-9+]/g,''))+'">'+esc(r.phone)+'</a>']);
+      if(val(r.email)) rows.push(['E-mail', '<a class="inl" href="mailto:'+esc(r.email)+'">'+esc(r.email)+'</a>']);
+      if(www) rows.push(['Strona WWW','<a class="inl" href="'+esc(httpify(www))+'" target="_blank" rel="noopener">'+esc(www.replace(/^https?:\/\//,''))+'</a>']);
+      if(val(r.nip)) rows.push(['NIP', esc(r.nip)]);
+      if(val(r.regon)) rows.push(['REGON', esc(r.regon)]);
+      if(val(r.krs)) rows.push(['KRS', esc(r.krs)]);
       document.getElementById('mBody').innerHTML=rows.map(function(x){return '<dt>'+x[0]+'</dt><dd>'+x[1]+'</dd>';}).join('');
-      var www=document.getElementById('mWww');
-      if(r.website){ var u=/^https?:/.test(r.website)?r.website:'https://'+r.website; www.innerHTML='<a class="modal-www" href="'+esc(u)+'" target="_blank" rel="noopener">Odwiedź stronę firmy →</a>'; }
-      else www.innerHTML='';
+      var acts=[];
+      if(www) acts.push('<a class="modal-www" href="'+esc(httpify(www))+'" target="_blank" rel="noopener">Odwiedź stronę firmy →</a>');
+      if(val(r.facebook)) acts.push('<a class="modal-soc fb" href="'+esc(httpify(r.facebook))+'" target="_blank" rel="noopener">f&nbsp; Facebook</a>');
+      if(val(r.linkedin)) acts.push('<a class="modal-soc li" href="'+esc(httpify(r.linkedin))+'" target="_blank" rel="noopener">in&nbsp; LinkedIn</a>');
+      document.getElementById('mActs').innerHTML=acts.join('');
       document.getElementById('ov').classList.add('open');
     }
     function closeModal(){document.getElementById('ov').classList.remove('open');}
@@ -197,39 +229,89 @@
     }
     document.getElementById('szukaj').addEventListener('input',function(){ applyFilter(); clearMapSel(); });
 
-    /* ---- MAPA województw ---- */
+    /* ---- MAPA Leaflet (siedziba GIG + pinezki firm + zoom województw) ---- */
+    var map=null, wojByName={}, pinByName={}, countByRegion={}, regionProper={}, selectedRegion=null;
+    function cap(s){ return s? s.charAt(0).toUpperCase()+s.slice(1):s; }
+    function wojColor(c){ return c>=8?'#cc0a2b':c>=4?'#d6536b':c>=1?'#eaa6b2':'#dfe5ea'; }
+    function wojStyle(nm){ var c=countByRegion[nm]||0; return {fillColor:wojColor(c), fillOpacity:c?0.42:0.16, color:'#ffffff', weight:1}; }
+
+    function popupHtml(r){
+      var www=val(r.website);
+      var h='<div class="gig-pop"><h4>'+esc(r.name)+'</h4><div class="pr">'+esc(r.region||'')+'</div>';
+      if(val(r.address)) h+='<div class="pl-row">'+esc(r.address)+'</div>';
+      if(val(r.person))  h+='<div class="pl-row"><b>Kontakt:</b> '+esc(r.person)+'</div>';
+      if(val(r.phone))   h+='<div class="pl-row"><b>Tel:</b> <a href="tel:'+esc(r.phone.replace(/[^0-9+]/g,''))+'">'+esc(r.phone)+'</a></div>';
+      if(val(r.email))   h+='<div class="pl-row"><b>E-mail:</b> <a href="mailto:'+esc(r.email)+'">'+esc(r.email)+'</a></div>';
+      if(www)            h+='<div class="pl-row"><b>WWW:</b> <a href="'+esc(httpify(www))+'" target="_blank" rel="noopener">'+esc(www.replace(/^https?:\/\//,''))+'</a></div>';
+      h+='<span class="pl-more">Pełne dane firmy →</span></div>';
+      return h;
+    }
     function clearMapSel(){
-      document.querySelectorAll('#mapwrap path.active').forEach(function(p){p.classList.remove('active');});
+      selectedRegion=null;
+      Object.keys(wojByName).forEach(function(k){ if(wojByName[k].setStyle) wojByName[k].setStyle(wojStyle(k)); });
       var r=document.getElementById('mapreset'); if(r) r.style.display='none';
     }
-    function selectRegion(name,path){
+    function selectRegion(nm){
+      selectedRegion=nm;
       document.getElementById('szukaj').value='';
-      render(ALL.filter(function(r){return (r.region||'')===name;}));
-      document.querySelectorAll('#mapwrap path.active').forEach(function(p){p.classList.remove('active');});
-      if(path) path.classList.add('active');
+      render(ALL.filter(function(r){return (r.region||'').toLowerCase()===nm;}));
+      Object.keys(wojByName).forEach(function(k){ if(wojByName[k].setStyle) wojByName[k].setStyle(wojStyle(k)); });
+      var ly=wojByName[nm];
+      if(ly){ if(ly.setStyle) ly.setStyle({weight:3,color:'#cc0a2b',fillOpacity:.12}); if(map&&ly.getBounds){ map.invalidateSize(); map.fitBounds(ly.getBounds(),{padding:[24,24]}); } }
       document.getElementById('mapreset').style.display='block';
-      var t=document.querySelector('.toolbar'); if(t) t.scrollIntoView({behavior:'smooth',block:'center'});
     }
     function buildMap(items){
-      var box=document.getElementById('mapwrap');
-      if(!box||!window.GIG_MAPA){ if(box) box.style.display='none'; return; }
-      var counts={}; items.forEach(function(r){var k=(r.region||'').toLowerCase(); counts[k]=(counts[k]||0)+1;});
-      var svg='<svg viewBox="'+GIG_MAPA.viewBox+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mapa województw z firmami członkowskimi GIG">';
-      GIG_MAPA.regions.forEach(function(reg){
-        var c=counts[reg.slug]||0;
-        var cls='region-path'+(c?(' has '+(c>=8?'b3':c>=4?'b2':'b1')):'');
-        svg+='<path d="'+reg.d+'" class="'+cls+'" data-name="'+esc(reg.name)+'" data-c="'+c+'"></path>';
+      var el=document.getElementById('map');
+      if(!el||typeof L==='undefined'){ if(el) el.style.display='none'; return; }
+      countByRegion={}; regionProper={};
+      items.forEach(function(r){ var k=(r.region||'').toLowerCase(); if(k){ countByRegion[k]=(countByRegion[k]||0)+1; regionProper[k]=r.region; } });
+      map=L.map('map',{scrollWheelZoom:false}).setView([52.05,19.35],6);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+      if(window.GIG_WOJ){
+        L.geoJSON(window.GIG_WOJ,{
+          style:function(f){ return wojStyle(f.properties.nazwa); },
+          onEachFeature:function(f,layer){
+            var nm=f.properties.nazwa; wojByName[nm]=layer;
+            layer.on('click',function(){ selectRegion(nm); });
+            layer.on('mouseover',function(){ layer.setStyle({weight:2,color:'#8f061d'}); });
+            layer.on('mouseout', function(){ if(nm!==selectedRegion) layer.setStyle(wojStyle(nm)); });
+            layer.bindTooltip((regionProper[nm]||cap(nm))+' — '+(countByRegion[nm]||0)+' firm',{sticky:true});
+          }
+        }).addTo(map);
+      }
+      var grp=(typeof L.markerClusterGroup==='function')?L.markerClusterGroup({maxClusterRadius:38,spiderfyOnMaxZoom:true}):L.layerGroup();
+      var pinIcon=L.divIcon({className:'gig-pin',iconSize:[15,15],iconAnchor:[7,7],popupAnchor:[0,-7]});
+      items.forEach(function(r){
+        if(r.lat==null||r.lng==null) return;
+        var m=L.marker([r.lat,r.lng],{icon:pinIcon,title:r.name});
+        m._rec=r; m.bindPopup(popupHtml(r),{maxWidth:280});
+        grp.addLayer(m); pinByName[r.name]=m;
       });
-      box.innerHTML=svg+'</svg>';
-      var tip=document.getElementById('maptip');
-      box.querySelectorAll('path.has').forEach(function(p){
-        p.addEventListener('click',function(){ selectRegion(p.getAttribute('data-name'),p); });
-        p.addEventListener('mousemove',function(e){ tip.textContent=p.getAttribute('data-name')+' — '+p.getAttribute('data-c')+' firm'; tip.style.opacity='1'; tip.style.left=(e.clientX+12)+'px'; tip.style.top=(e.clientY+14)+'px'; });
-        p.addEventListener('mouseleave',function(){ tip.style.opacity='0'; });
+      map.addLayer(grp);
+      var hqIcon=L.divIcon({className:'gig-hq',html:'★',iconSize:[30,30],iconAnchor:[15,15],popupAnchor:[0,-15]});
+      L.marker([52.2353,21.0094],{icon:hqIcon,title:'Siedziba GIG',zIndexOffset:1000}).addTo(map)
+        .bindPopup('<div class="gig-pop"><h4>Geodezyjna Izba Gospodarcza</h4><div class="pr">Siedziba Izby</div><div class="pl-row">ul. Czackiego 3/5, 00-043 Warszawa</div><div class="pl-row"><b>Tel:</b> <a href="tel:228273843">22 827 38 43</a></div><div class="pl-row"><b>E-mail:</b> <a href="mailto:biuro@gig.org.pl">biuro@gig.org.pl</a></div></div>');
+      map.on('popupopen',function(e){
+        var rec=e.popup._source && e.popup._source._rec; if(!rec) return;
+        var btn=e.popup.getElement().querySelector('.pl-more');
+        if(btn) btn.addEventListener('click',function(){ map.closePopup(); openModal(rec); });
+      });
+      // kontener mógł mieć 0 szerokości w chwili inicjalizacji — przelicz po ułożeniu layoutu
+      setTimeout(function(){ if(map) map.invalidateSize(); }, 300);
+      window.addEventListener('resize', function(){ if(map) map.invalidateSize(); });
+    }
+    (function(){ var rb=document.getElementById('mapresetbtn'); if(rb) rb.addEventListener('click',function(){ document.getElementById('szukaj').value=''; applyFilter(); clearMapSel(); if(map) map.setView([52.05,19.35],6); }); })();
+
+    function mergeEnrich(){
+      var E=window.GIG_ENRICH||{};
+      ALL.forEach(function(r){
+        var e=E[r.name]; if(!e) return;
+        ['website','facebook','linkedin','description','nip','regon','krs'].forEach(function(k){
+          if(!val(r[k]) && e[k]!=null && String(e[k]).toLowerCase()!=='brak') r[k]=e[k];
+        });
+        if((r.lat==null||r.lng==null) && e.lat!=null){ r.lat=e.lat; r.lng=e.lng; }
       });
     }
-    (function(){ var rb=document.getElementById('mapresetbtn'); if(rb) rb.addEventListener('click',function(){ document.getElementById('szukaj').value=''; applyFilter(); clearMapSel(); }); })();
-
     (async function(){
       try{
         var db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
@@ -237,6 +319,7 @@
         if(res.error) throw res.error;
         ALL=res.data||[];
         if(!ALL.length){ document.getElementById('lista').innerHTML='<div class="empty">Lista członków jest aktualizowana. Zapraszamy wkrótce.</div>'; return; }
+        mergeEnrich();
         render(ALL);
         buildMap(ALL);
       }catch(e){
