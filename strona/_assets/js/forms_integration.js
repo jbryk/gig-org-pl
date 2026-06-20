@@ -58,6 +58,7 @@
 
   function classify(form) {
     if (form.querySelector('[name="your-newsletter-email"]')) return "newsletter";
+    if (form.querySelector('[name="company-name"], [name="company-email"]')) return "czlonkostwo";
     if (form.querySelector('[name="your-message"], [name="your-email"]')) return "kontakt";
     return null;
   }
@@ -118,6 +119,58 @@
     }
   }
 
+  async function handleCzlonkostwo(form) {
+    var d = {
+      company:   val(form, '[name="company-name"]'),
+      address:   val(form, '[name="company-address"]'),
+      phone:     val(form, '[name="company-phone"]'),
+      email:     val(form, '[name="company-email"]'),
+      person:    val(form, '[name="representative-name"]'),
+      employees: val(form, '[name="employees-count"]'),
+      business:  val(form, '[name="business-type"]')
+    };
+    var mc = form.querySelector('[name="membership-consent"]');
+    var rodo = form.querySelector('[name="acceptance-rodo"]');
+    if (!d.company || !d.email) { showMsg(form, "Uzupełnij nazwę firmy oraz adres e-mail.", false); return; }
+    if (!isEmail(d.email)) { showMsg(form, "Podaj poprawny adres e-mail.", false); return; }
+    if (mc && !mc.checked) { showMsg(form, "Zaznacz oświadczenie o akcesie członkowskim.", false); return; }
+    if (rodo && !rodo.checked) { showMsg(form, "Zaznacz zgodę na przetwarzanie danych (RODO).", false); return; }
+
+    var message =
+      "ZGŁOSZENIE CZŁONKOWSKIE\n" +
+      "Firma: " + d.company + "\n" +
+      "Adres: " + (d.address || "—") + "\n" +
+      "Telefon: " + (d.phone || "—") + "\n" +
+      "E-mail: " + d.email + "\n" +
+      "Osoba reprezentująca: " + (d.person || "—") + "\n" +
+      "Liczba osób w firmie: " + (d.employees || "—") + "\n" +
+      "Profil działalności: " + (d.business || "—") + "\n\n" +
+      "Akces członkowski: TAK (wpisowe 75,00 zł + składki). Zgoda RODO: TAK.";
+
+    if (!configured) {
+      window.location.href = mailto("Zgłoszenie członkowskie GIG: " + d.company, message);
+      showMsg(form, "Otworzyliśmy program pocztowy. Jeśli się nie otworzył, napisz na " + FALLBACK_EMAIL + ".", true);
+      return;
+    }
+    var btn = form.querySelector('.wpcf7-submit, [type="submit"]');
+    if (btn) btn.disabled = true;
+    try {
+      var db = await getDb();
+      var res = await db.from("submissions_kontakt").insert({
+        name: d.person || d.company, email: d.email,
+        subject: "Zgłoszenie członkowskie: " + d.company, message: message, status: "new"
+      });
+      if (res.error) throw res.error;
+      form.reset();
+      showMsg(form, "✓ Dziękujemy! Zgłoszenie zostało wysłane. Skontaktujemy się z Państwem.", true);
+    } catch (e) {
+      console.error(e);
+      showMsg(form, "Błąd wysyłania — spróbuj ponownie lub napisz na " + FALLBACK_EMAIL + ".", false);
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
   function hook(form) {
     if (form.dataset.gigHooked) return;
     form.dataset.gigHooked = "1";
@@ -126,6 +179,7 @@
       e.stopImmediatePropagation(); // zablokuj własny handler CF7
       var kind = classify(form);
       if (kind === "newsletter") handleNewsletter(form);
+      else if (kind === "czlonkostwo") handleCzlonkostwo(form);
       else if (kind === "kontakt") handleKontakt(form);
     }, true); // capture
   }
