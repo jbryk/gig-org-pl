@@ -58,7 +58,7 @@
     .maplegend i{width:13px;height:13px;border-radius:3px;display:inline-block;}
     .lg-pin{width:13px;height:13px;border-radius:50%;background:var(--red);border:2px solid #fff;box-shadow:0 0 2px rgba(0,0,0,.4);}
     .lg-hq{width:15px;height:15px;border-radius:50%;background:#16202a;border:2px solid #ffd23f;}
-    .mapreset{display:none;text-align:center;margin:12px 0 0;}
+    .mapreset{display:block;text-align:center;margin:12px 0 0;}
     .mapreset button{background:#fff;border:1px solid var(--line);border-radius:20px;padding:7px 18px;font:inherit;font-size:13px;color:var(--ink);cursor:pointer;}
     .mapreset button:hover{border-color:var(--red);color:var(--red);}
     /* markery */
@@ -279,7 +279,7 @@
     function clearMapSel(){
       selectedRegion=null;
       Object.keys(wojByName).forEach(function(k){ if(wojByName[k].setStyle) wojByName[k].setStyle(wojStyle(k)); });
-      var r=document.getElementById('mapreset'); if(r) r.style.display='none';
+      // przycisk „Pokaż całą Polskę" zostaje zawsze widoczny (reset po zoomie myszą)
     }
     function selectRegion(nm){
       selectedRegion=nm;
