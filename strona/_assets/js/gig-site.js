@@ -1,7 +1,7 @@
 /* =====================================================================
    GIG — elementy site-wide:
    (1) pływający widget: Facebook + LinkedIn + zapis do newslettera,
-   (2) rozwijane menu „O nas" → [O nas, Członkowie] (strzałka, jak Baza wiedzy).
+   (2) rozwijane menu „O nas" → [Członkowie] (strzałka ▾ w dół, jak Baza wiedzy).
    Wstrzykiwane na każdej stronie.
    ===================================================================== */
 (function () {
@@ -33,8 +33,6 @@
     /* gwarancja: rozwiń podmenu O nas na hover (bez odstępu), niezależnie od JS motywu */
     "li[data-gig-dd]{position:relative;}" +
     "li[data-gig-dd]:hover > .mfn-submenu, li[data-gig-dd]:focus-within > .mfn-submenu{display:block !important;opacity:1 !important;visibility:visible !important;pointer-events:auto !important;}" +
-    /* ukryj strzałkę (fa-arrow-down) przy pozycji „O nas" — na życzenie usunięta */
-    "li[data-gig-dd] > a .menu-sub, li[data-gig-dd] > a .mfn-menu-subicon{display:none !important;}" +
     /* sticky: nagłówek BeTheme (strona główna + podstrony mirror) — po scrollu staje się
        biały, przyklejony na górze; czerwone menu i kolorowe logo czytelne na białym.
        Bez animacji transform — żeby nagłówek nigdy nie mógł „utknąć" poza ekranem. */
@@ -106,8 +104,7 @@
     return '<li class="menu-item menu-item-type-post_type menu-item-object-page mfn-menu-li">' +
       '<a class="mfn-menu-link" href="' + href + '">' +
       '<span class="menu-item-helper mfn-menu-item-helper"></span>' +
-      '<span class="label-wrapper mfn-menu-label-wrapper"><span class="menu-label">' + label + '</span></span>' +
-      '<span class="menu-sub mfn-menu-sub-subicon"><i class="fas fa-arrow-right"></i></span></a></li>';
+      '<span class="label-wrapper mfn-menu-label-wrapper"><span class="menu-label">' + label + '</span></span></a></li>';
   }
   // Zamień „O nas" w natywne menu rozwijane motywu (klasy mfn → strzałka + hover jak „Baza wiedzy")
   function enhanceMenu() {
@@ -119,7 +116,7 @@
       li.classList.add("menu-item-has-children");
       var ul = document.createElement("ul");
       ul.className = "sub-menu mfn-submenu";
-      ul.innerHTML = subLi("/o-nas/", "O nas") + subLi("/czlonkowie/", "Członkowie");
+      ul.innerHTML = subLi("/czlonkowie/", "Członkowie");
       li.appendChild(ul);
     });
   }
