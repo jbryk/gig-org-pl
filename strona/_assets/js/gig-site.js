@@ -110,39 +110,14 @@
     });
   }
 
-  /* ---------- (3) MENU: pozycja „Nadchodzące wydarzenia" ---------- */
-  // Wstawia link /nadchodzace-wydarzenia/ zaraz po „Home". Idempotentne.
+  /* ---------- (3) MENU: Home → hover podmenu (CSS trigger) ---------- */
+  // Struktura podmenu jest już w HTML; JS tylko ustawia data-gig-dd żeby CSS hover działał.
   function enhanceWydarzeniaMenu() {
-    var WURL = "/nadchodzace-wydarzenia/";
-
-    // (a) Menu BeTheme (mirror): a.mfn-menu-link href="/" lub "/index.php/" = Home
     var homeLinks = document.querySelectorAll('a.mfn-menu-link[href="/"], a.mfn-menu-link[href="/index.php/"]');
     homeLinks.forEach(function (a) {
       var li = a.closest("li.mfn-menu-li, li.menu-item");
-      if (!li) return;
-      var menu = li.parentElement;
-      if (!menu) return;
-      // idempotencja: nie dodawaj, jeśli w tym menu jest już link do wydarzeń
-      if (menu.querySelector('a.mfn-menu-link[href="' + WURL + '"]')) return;
-      var newLi = document.createElement("li");
-      newLi.className = "menu-item menu-item-type-post_type menu-item-object-page mfn-menu-li";
-      newLi.innerHTML =
-        '<a class="mfn-menu-link" href="' + WURL + '">' +
-        '<span class="menu-item-helper mfn-menu-item-helper"></span>' +
-        '<span class="label-wrapper mfn-menu-label-wrapper"><span class="menu-label">Nadchodzące wydarzenia</span></span>' +
-        '</a>';
-      li.parentNode.insertBefore(newLi, li.nextSibling);
-    });
-
-    // (b) Menu branded (moje strony): header .site-head nav.nav z prostymi <a>
-    var navs = document.querySelectorAll("header.site-head nav.nav, .site-head nav.nav");
-    navs.forEach(function (nav) {
-      // idempotencja: pomiń, jeśli już jest link do wydarzeń
-      if (nav.querySelector('a[href="' + WURL + '"]')) return;
-      var a = document.createElement("a");
-      a.setAttribute("href", WURL);
-      a.textContent = "Nadchodzące wydarzenia";
-      nav.insertBefore(a, nav.firstChild);
+      if (!li || li.dataset.gigDd) return;
+      li.dataset.gigDd = "1";
     });
   }
 
