@@ -33,6 +33,8 @@
     /* gwarancja: rozwiń podmenu O nas na hover (bez odstępu), niezależnie od JS motywu */
     "li[data-gig-dd]{position:relative;}" +
     "li[data-gig-dd]:hover > .mfn-submenu, li[data-gig-dd]:focus-within > .mfn-submenu{display:block !important;opacity:1 !important;visibility:visible !important;pointer-events:auto !important;}" +
+    /* ukryj strzałkę (fa-arrow-down) przy pozycji „O nas" — na życzenie usunięta */
+    "li[data-gig-dd] > a .menu-sub, li[data-gig-dd] > a .mfn-menu-subicon{display:none !important;}" +
     /* sticky: nagłówek BeTheme (strona główna + podstrony mirror) — po scrollu staje się
        biały, przyklejony na górze; czerwone menu i kolorowe logo czytelne na białym.
        Bez animacji transform — żeby nagłówek nigdy nie mógł „utknąć" poza ekranem. */
