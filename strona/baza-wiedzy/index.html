@@ -1,15 +1,164 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Baza wiedzy – Geodezyjna Izba Gospodarcza</title>
-<meta name="robots" content="noindex,follow">
-<link rel="canonical" href="https://gig.org.pl/baza-wiedzy/aktualnosci-gig/">
-<meta http-equiv="refresh" content="0; url=/baza-wiedzy/aktualnosci-gig/">
-<script>location.replace('/baza-wiedzy/aktualnosci-gig/');</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Baza wiedzy — Geodezyjna Izba Gospodarcza</title>
+  <meta name="description" content="Baza wiedzy GIG: aktualności, artykuły eksperckie i biuletyny Geodezyjnej Izby Gospodarczej — praktyczna wiedza, interpretacje przepisów i informacje branżowe.">
+  <link rel="canonical" href="https://gig.org.pl/baza-wiedzy/">
+  <link rel="icon" href="/wp-content/uploads/2026/04/favicon.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"></noscript>
+  <style>
+    :root{--red:#cc0a2b;--ink:#16202a;--muted:#6b7884;--line:#e6ebef;--bg:#f4f6f8;}
+    *{box-sizing:border-box;}
+    body{margin:0;font-family:Inter,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:var(--ink);background:#fff;line-height:1.6;}
+    a{color:var(--red);text-decoration:none;} a:hover{text-decoration:underline;}
+    .wrap{max-width:1140px;margin:0 auto;padding:0 22px;}
+    /* header */
+    .site-head{border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(255,255,255,.97);backdrop-filter:blur(6px);z-index:40;}
+    .head-in{display:flex;align-items:center;justify-content:space-between;min-height:72px;gap:16px;}
+    .head-in img{height:42px;width:auto;display:block;}
+    .nav{display:flex;gap:22px;flex-wrap:wrap;}
+    .nav a{color:var(--ink);font-weight:600;font-size:15px;}
+    .nav a:hover,.nav a.active{color:var(--red);text-decoration:none;}
+    /* hero */
+    .hero{background:linear-gradient(180deg,#fff,var(--bg));padding:46px 0 30px;text-align:center;}
+    .hero h1{font-size:clamp(28px,5vw,42px);margin:0 0 10px;}
+    .hero p{color:var(--muted);max-width:64ch;margin:0 auto;}
+    /* sekcje */
+    .bw-section{padding:40px 0 8px;}
+    .bw-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 22px;flex-wrap:wrap;}
+    .bw-head h2{font-size:26px;margin:0;line-height:1.2;position:relative;padding-left:16px;}
+    .bw-head h2::before{content:"";position:absolute;left:0;top:4px;bottom:4px;width:5px;background:var(--red);border-radius:3px;}
+    .bw-head .all{font-weight:700;font-size:14px;white-space:nowrap;}
+    .bw-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+    @media(max-width:900px){.bw-grid{grid-template-columns:repeat(2,1fr);}}
+    @media(max-width:600px){.bw-grid{grid-template-columns:1fr;}}
+    .bw-card{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 6px 18px rgba(20,40,60,.06);transition:transform .15s,box-shadow .15s;color:var(--ink);}
+    .bw-card:hover{transform:translateY(-4px);box-shadow:0 16px 34px rgba(20,40,60,.14);text-decoration:none;}
+    .bw-card .img{height:184px;background:#e9eef2 center/cover no-repeat;}
+    .bw-card .body{padding:16px 18px 18px;display:flex;flex-direction:column;flex:1;}
+    .bw-card .date{color:var(--red);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+    .bw-card h3{font-size:17px;line-height:1.35;margin:6px 0 8px;color:var(--ink);
+      display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+    .bw-card p{font-size:14px;color:var(--muted);margin:0 0 12px;
+      display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+    .bw-card .more{margin-top:auto;color:var(--red);font-weight:700;font-size:14px;}
+    .bw-loading{color:var(--muted);padding:10px 2px;}
+    .btn{display:inline-block;background:var(--red);color:#fff;font-weight:700;padding:11px 22px;border-radius:10px;}
+    .btn:hover{filter:brightness(.93);text-decoration:none;color:#fff;}
+    .btn-ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line);}
+    .btn-ghost:hover{border-color:var(--red);color:var(--red);filter:none;}
+    /* biuletyn */
+    .biul{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:26px 30px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;justify-content:space-between;}
+    .biul p{margin:6px 0 0;color:#4b5662;max-width:64ch;}
+    .biul .ic{font-size:34px;}
+    /* footer */
+    .site-foot{background:var(--ink);color:rgba(255,255,255,.75);margin-top:54px;padding:40px 0 26px;}
+    .foot-in{display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap;}
+    .site-foot strong{color:#fff;} .site-foot a{color:#fff;}
+    .foot-soc a{display:inline-block;margin-left:14px;}
+    @media(max-width:760px){.nav{display:none;}}
+  </style>
 </head>
-<body style="font-family:Arial,Helvetica,sans-serif;padding:40px;color:#16202a">
-Przekierowanie do sekcji <a href="/baza-wiedzy/aktualnosci-gig/">Aktualności</a>…
+<body>
+  <header class="site-head"><div class="wrap head-in">
+    <a href="/"><img src="/wp-content/uploads/2026/04/gig-logo-new-poziom.svg" alt="Geodezyjna Izba Gospodarcza"></a>
+    <nav class="nav">
+      <a href="/o-nas/">O nas</a>
+      <a href="/czlonkowie/">Członkowie</a>
+      <a href="/baza-wiedzy/" class="active">Baza wiedzy</a>
+      <a href="/szkolenia/">Szkolenia</a>
+      <a href="/dolacz-do-nas/">Dołącz do nas</a>
+      <a href="/kontakt/">Kontakt</a>
+    </nav>
+  </div></header>
+
+  <main>
+    <section class="hero"><div class="wrap">
+      <h1>Baza wiedzy</h1>
+      <p>Aktualności, artykuły eksperckie i biuletyny Geodezyjnej Izby Gospodarczej — praktyczna wiedza, interpretacje przepisów i informacje branżowe.</p>
+    </div></section>
+
+    <div class="wrap">
+      <section class="bw-section">
+        <div class="bw-head"><h2>Aktualności</h2><a class="all" href="/baza-wiedzy/aktualnosci-gig/">Wszystkie aktualności →</a></div>
+        <div class="bw-grid" id="bw-aktualnosci"><div class="bw-loading">Ładowanie…</div></div>
+      </section>
+
+      <section class="bw-section">
+        <div class="bw-head"><h2>Artykuły</h2><a class="all" href="/baza-wiedzy/artykuly/">Wszystkie artykuły →</a></div>
+        <div class="bw-grid" id="bw-artykuly"><div class="bw-loading">Ładowanie…</div></div>
+      </section>
+
+      <section class="bw-section">
+        <div class="bw-head"><h2>Biuletyn</h2></div>
+        <div class="biul">
+          <div>
+            <strong style="font-size:18px;">Biuletyn Informacyjny GIG</strong>
+            <p>Archiwum wszystkich wydań Biuletynu Informacyjnego Izby. Bieżące informacje przekazujemy obecnie podczas kwartalnych wideokonferencji dla członków.</p>
+          </div>
+          <a class="btn" href="/biuletyn-gig/">Przejdź do biuletynów</a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-foot"><div class="wrap foot-in">
+    <div>
+      <strong>Geodezyjna Izba Gospodarcza</strong><br>
+      ul. Czackiego 3/5, 00-043 Warszawa<br>
+      tel. 22 827 38 43 · <a href="mailto:biuro@gig.org.pl">biuro@gig.org.pl</a><br>
+      eDoręczenia: AE:PL-54372-78798-CHRDS-30
+    </div>
+    <div class="foot-soc">
+      <a href="https://www.facebook.com/gigorgpl" target="_blank" rel="noopener">Facebook</a>
+      <a href="https://www.linkedin.com/company/gig-geodezyjna-izba-gospodarcza" target="_blank" rel="noopener">LinkedIn</a>
+    </div>
+  </div></footer>
+
+  <script>
+  (function(){
+    function esc(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+    function card(d){
+      var img = d.img ? 'style="background-image:url(\''+esc(d.img)+'\')"' : '';
+      return '<a class="bw-card" href="'+esc(d.href)+'">'
+        +'<div class="img" '+img+'></div>'
+        +'<div class="body">'
+        +(d.date?'<span class="date">'+esc(d.date)+'</span>':'')
+        +'<h3>'+esc(d.title)+'</h3>'
+        +(d.exc?'<p>'+esc(d.exc)+'</p>':'')
+        +'<span class="more">Czytaj dalej →</span>'
+        +'</div></a>';
+    }
+    function load(url, targetId, max){
+      var box=document.getElementById(targetId); if(!box) return;
+      fetch(url).then(function(r){return r.text();}).then(function(html){
+        var doc=new DOMParser().parseFromString(html,'text/html');
+        var arts=[].slice.call(doc.querySelectorAll('.posts_group article.post-item')).slice(0,max);
+        if(!arts.length){ box.innerHTML='<div class="bw-loading">Wkrótce nowe wpisy.</div>'; return; }
+        box.innerHTML=arts.map(function(a){
+          var t=a.querySelector('.post-title a')||a.querySelector('.entry-title a');
+          var im=a.querySelector('.image_frame img');
+          return card({
+            date:((a.querySelector('.date_label')||{}).textContent||'').trim(),
+            title:t?t.textContent.trim():'',
+            href:t?t.getAttribute('href'):'#',
+            img:im?im.getAttribute('src'):'',
+            exc:((a.querySelector('.post-excerpt')||{}).textContent||'').trim()
+          });
+        }).join('');
+      }).catch(function(){
+        box.innerHTML='<div class="bw-loading"><a href="'+url+'">Zobacz sekcję →</a></div>';
+      });
+    }
+    load('/aktualnosci/','bw-aktualnosci',3);
+    load('/artykuly/','bw-artykuly',3);
+  })();
+  </script>
+<script defer src="/_assets/js/gig-site.js"></script>
 </body>
 </html>
