@@ -125,8 +125,8 @@
 
   /* ---------- (2b) PRZEBUDOWA MENU (site-wide, idempotentna) ----------
      • „Aktualności" jako osobna pozycja top-level po prawej od „O nas”
-       (rozwijane: Nadchodzące wydarzenia, Artykuły),
-     • „Baza wiedzy” zostaje z Biuletynem (Aktualności/Artykuły/Nadchodzące przeniesione),
+       (rozwijane: Nadchodzące wydarzenia),
+     • „Baza wiedzy” zostaje z Artykułami i Biuletynem (Aktualności/Nadchodzące przeniesione),
      • „Dołącz do nas” wchodzi do rozwijanego „Kontakt”.
      Wszystkie rozwijane mają strzałkę ▾ w dół (menu-sub mfn-menu-subicon). */
   // markup top-level kotwicy ze strzałką ▾ w dół (jak „Baza wiedzy”)
@@ -159,18 +159,18 @@
       aktLi.innerHTML = topAnchorHTML("/baza-wiedzy/aktualnosci-gig/", "Aktualności");
       var aSub = document.createElement("ul"); aSub.className = "sub-menu mfn-submenu";
       aSub.appendChild(makeSubLi("/nadchodzace-wydarzenia/", "Nadchodzące wydarzenia"));
-      aSub.appendChild(makeSubLi("/baza-wiedzy/artykuly/", "Artykuły"));
       aktLi.appendChild(aSub);
       oNas.insertAdjacentElement("afterend", aktLi);
     }
-    // usuń z podmenu „Baza wiedzy” pozycje przeniesione (Aktualności, Artykuły, Nadchodzące)
+    // usuń z podmenu „Baza wiedzy” pozycje przeniesione do „Aktualności” (Aktualności + Nadchodzące);
+    // „Artykuły” zostaje w „Baza wiedzy”
     if (baza) {
       baza.dataset.gigDd = "1"; // spójne otwieranie na hover naszą regułą (jak O nas)
       var bSub = baza.querySelector(":scope > ul");
       if (bSub) {
         Array.prototype.slice.call(bSub.children).forEach(function (l) {
           var a = l.querySelector(":scope > a"); if (!a) return;
-          if (hrefEnds(a, "/aktualnosci-gig") || hrefEnds(a, "/artykuly") || hrefEnds(a, "/nadchodzace-wydarzenia")) l.remove();
+          if (hrefEnds(a, "/aktualnosci-gig") || hrefEnds(a, "/nadchodzace-wydarzenia")) l.remove();
         });
       }
     }
