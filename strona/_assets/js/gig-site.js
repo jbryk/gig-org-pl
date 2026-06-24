@@ -35,6 +35,11 @@
     "li[data-gig-dd]:hover > .mfn-submenu, li[data-gig-dd]:focus-within > .mfn-submenu{display:block !important;opacity:1 !important;visibility:visible !important;pointer-events:auto !important;}" +
     /* w rozwijanych podmenu bez poziomych strzałek (fa-arrow-right) — spójnie wszędzie */
     ".mfn-submenu .mfn-menu-sub-subicon{display:none !important;}" +
+    /* rozwijane licują: flush tuż pod pozycją (ciągłość hovera);
+       „Kontakt" (ostatnia, przy prawej krawędzi) otwiera się w lewo — prawą krawędzią
+       pod pozycją, żeby nie wystawać w prawo poza pasek */
+    "li[data-gig-dd] > .mfn-submenu{top:100% !important;margin-top:0 !important;}" +
+    "li[data-gig-dd].gig-dd-right > .mfn-submenu{left:auto !important;right:0 !important;}" +
     /* sticky: nagłówek BeTheme (strona główna + podstrony mirror) — po scrollu staje się
        biały, przyklejony na górze; czerwone menu i kolorowe logo czytelne na białym.
        Bez animacji transform — żeby nagłówek nigdy nie mógł „utknąć" poza ekranem. */
@@ -178,7 +183,9 @@
     var dolacz = topByHref(ul, "/dolacz-do-nas");
     if (kontakt && dolacz && dolacz.parentElement === ul) {
       if (!kontakt.querySelector(":scope > ul")) {
-        kontakt.classList.add("menu-item-has-children");
+        // gig-dd-right: „Kontakt” to ostatnia pozycja przy prawej krawędzi —
+        // jego rozwijane otwiera się w lewo (prawą krawędzią pod pozycją), żeby licowało
+        kontakt.classList.add("menu-item-has-children", "gig-dd-right");
         kontakt.dataset.gigDd = "1";
         var kSub = document.createElement("ul"); kSub.className = "sub-menu mfn-submenu";
         kSub.appendChild(makeSubLi("/dolacz-do-nas/", "Dołącz do nas"));
