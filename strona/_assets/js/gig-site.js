@@ -110,29 +110,20 @@
     });
   }
 
-  /* ---------- (3) MENU: Home → hover podmenu (CSS trigger) ---------- */
-  // Struktura podmenu jest już w HTML; JS tylko ustawia data-gig-dd żeby CSS hover działał.
-  function enhanceWydarzeniaMenu() {
-    var homeLinks = document.querySelectorAll('a.mfn-menu-link[href="/"], a.mfn-menu-link[href="/index.php/"]');
-    homeLinks.forEach(function (a) {
-      var li = a.closest("li.mfn-menu-li, li.menu-item");
-      if (!li || li.dataset.gigDd) return;
-      li.dataset.gigDd = "1";
-    });
-  }
+  /* „Nadchodzące wydarzenia" jest teraz statyczną pozycją w rozwijanym menu
+     „Baza wiedzy" (strona główna) oraz w nagłówku podstron — bez ingerencji JS. */
 
   function init() {
     buildWidget();
     enhanceMenu();
-    enhanceWydarzeniaMenu();
-    // BeTheme inicjuje menu po DOMContentLoaded i przebudowuje markup —
-    // funkcja jest idempotentna, więc bezpiecznie powtarzamy ją po inicjalizacji motywu.
+    // BeTheme przebudowuje markup menu po DOMContentLoaded — enhanceMenu („O nas")
+    // jest idempotentne, więc powtarzamy je po inicjalizacji motywu.
     var tries = 0;
     var iv = setInterval(function () {
-      enhanceWydarzeniaMenu();
+      enhanceMenu();
       if (++tries >= 6) clearInterval(iv);
     }, 250);
-    window.addEventListener("load", enhanceWydarzeniaMenu);
+    window.addEventListener("load", enhanceMenu);
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();

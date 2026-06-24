@@ -11,6 +11,13 @@ header.site-head .nav a.active{color:#cc0a2b;}
 header.site-head .head-phone{display:inline-flex;align-items:center;gap:7px;background:#cc0a2b;color:#fff;font-weight:700;font-size:14px;padding:11px 17px;border-radius:30px;white-space:nowrap;text-decoration:none;}
 header.site-head .head-phone:hover{filter:brightness(.92);text-decoration:none;color:#fff;}
 header.site-head .head-phone svg{flex:none;}
+/* rozwijane podmenu (jak na stronie głównej): O nas ▾, Baza wiedzy ▾ */
+header.site-head .nav .nav-item{position:relative;display:inline-flex;align-items:center;}
+header.site-head .nav .nav-item>a::after{content:"";display:inline-block;margin-left:5px;border:4px solid transparent;border-top-color:currentColor;border-bottom:0;opacity:.6;transform:translateY(1px);}
+header.site-head .nav .nav-sub{position:absolute;top:100%;left:0;display:none;flex-direction:column;min-width:210px;background:#fff;border-radius:14px;padding:8px;box-shadow:0 14px 34px rgba(0,0,0,.20);z-index:70;}
+header.site-head .nav .nav-item:hover .nav-sub,header.site-head .nav .nav-item:focus-within .nav-sub{display:flex;}
+header.site-head .nav .nav-sub a{display:block;font-size:13px;font-weight:600;padding:8px 13px;border-radius:10px;white-space:nowrap;}
+header.site-head .nav .nav-sub a:hover{background:#f4f6f8;color:#cc0a2b;}
 @media(max-width:1180px){header.site-head .nav a{padding:6px 8px;font-size:13px;}}
 @media(max-width:900px){header.site-head .nav{display:none;}}
 @media(max-width:560px){header.site-head .head-phone{display:none;}}
