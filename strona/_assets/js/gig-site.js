@@ -32,7 +32,11 @@
     "#gigw .gigw-nlwrap{background:#fff;border:1px solid #e6ebef;border-radius:12px;padding:12px 14px;box-shadow:0 8px 26px rgba(20,40,60,.16);}" +
     /* gwarancja: rozwiń podmenu O nas na hover (bez odstępu), niezależnie od JS motywu */
     "li[data-gig-dd]{position:relative;}" +
-    "li[data-gig-dd]:hover > .mfn-submenu, li[data-gig-dd]:focus-within > .mfn-submenu{display:block !important;opacity:1 !important;visibility:visible !important;pointer-events:auto !important;}";
+    "li[data-gig-dd]:hover > .mfn-submenu, li[data-gig-dd]:focus-within > .mfn-submenu{display:block !important;opacity:1 !important;visibility:visible !important;pointer-events:auto !important;}" +
+    /* sticky: nagłówek BeTheme (strona główna + podstrony mirror) — po scrollu staje się
+       biały, przyklejony na górze; czerwone menu i kolorowe logo czytelne na białym.
+       Bez animacji transform — żeby nagłówek nigdy nie mógł „utknąć" poza ekranem. */
+    ".mfn-header-tmpl.mfn-header-main.gig-sticky{position:fixed !important;top:0 !important;left:0;right:0;width:100%;background:#fff !important;box-shadow:0 3px 16px rgba(20,40,60,.12);}";
   var st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 
   /* ---------- (1) WIDGET ---------- */
@@ -113,9 +117,29 @@
   /* „Nadchodzące wydarzenia" jest teraz statyczną pozycją w rozwijanym menu
      „Baza wiedzy" (strona główna) oraz w nagłówku podstron — bez ingerencji JS. */
 
+  /* ---------- (3) STICKY HEADER ---------- */
+  // Nagłówek szablonu BeTheme (strona główna i pozostałe podstrony mirror) jest
+  // przezroczystym overlayem (position:absolute) i znika przy scrollu. Po przewinięciu
+  // przyklejamy go na górze z białym tłem. Podstrony autorskie używają header.site-head
+  // (są już sticky w gig-subhead.css) — tam tego elementu nie ma, więc to no-op.
+  function stickyHeader() {
+    var h = document.querySelector(".mfn-header-tmpl.mfn-header-main");
+    if (!h) return;
+    var on = false;
+    function upd() {
+      var should = window.scrollY > 130;
+      if (should === on) return;
+      on = should;
+      h.classList.toggle("gig-sticky", should);
+    }
+    window.addEventListener("scroll", upd, { passive: true });
+    upd();
+  }
+
   function init() {
     buildWidget();
     enhanceMenu();
+    stickyHeader();
     // BeTheme przebudowuje markup menu po DOMContentLoaded — enhanceMenu („O nas")
     // jest idempotentne, więc powtarzamy je po inicjalizacji motywu.
     var tries = 0;
