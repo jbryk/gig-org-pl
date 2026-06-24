@@ -1,23 +1,24 @@
-/* GIG — jednolity nagłówek podstron autorskich (ciemny pasek, białe logo z napisem,
-   pigułka menu, czerwony przycisk telefonu) — spójny wygląd na wszystkich podstronach.
+/* GIG — jednolity JASNY nagłówek podstron autorskich: białe tło, kolorowe logo z lewej,
+   czerwone poziome menu z rozwijanymi „O nas" / „Baza wiedzy", czerwony przycisk telefonu.
+   Spójny ze stroną główną (jasny pasek BeTheme). Sticky — przykleja się przy scrollu.
    Selektory header.site-head mają wyższą specyficzność niż inline .site-head, więc nadpisują. */
-header.site-head{position:sticky;top:0;z-index:60;background:#1b2531;border-bottom:0;backdrop-filter:none;}
+header.site-head{position:sticky;top:0;z-index:60;background:#fff;border-bottom:1px solid #eef1f4;backdrop-filter:none;box-shadow:0 2px 12px rgba(20,40,60,.06);}
 header.site-head .head-in{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:78px;padding:8px 0;flex-wrap:nowrap;}
 header.site-head .head-in>a.logo img,header.site-head .head-in>a img{height:48px;width:auto;display:block;}
-header.site-head .nav{display:flex;align-items:center;gap:2px;background:#fff;border-radius:34px;padding:7px 12px;flex-wrap:wrap;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.18);}
-header.site-head .nav a{color:#16202a;font-weight:600;font-size:14px;padding:7px 11px;border-radius:22px;text-decoration:none;white-space:nowrap;}
-header.site-head .nav a:hover{color:#cc0a2b;text-decoration:none;}
+header.site-head .nav{display:flex;align-items:center;gap:4px;background:transparent;border-radius:0;padding:0;flex-wrap:wrap;justify-content:center;box-shadow:none;}
+header.site-head .nav>a,header.site-head .nav .nav-item>a{color:#B3001E;font-weight:600;font-size:15px;font-family:"Inter",sans-serif;padding:8px 12px;border-radius:8px;text-decoration:none;white-space:nowrap;}
+header.site-head .nav a:hover{color:#cc0a2b;background:#f7eef0;text-decoration:none;}
 header.site-head .nav a.active{color:#cc0a2b;}
 header.site-head .head-phone{display:inline-flex;align-items:center;gap:7px;background:#cc0a2b;color:#fff;font-weight:700;font-size:14px;padding:11px 17px;border-radius:30px;white-space:nowrap;text-decoration:none;}
 header.site-head .head-phone:hover{filter:brightness(.92);text-decoration:none;color:#fff;}
 header.site-head .head-phone svg{flex:none;}
 /* rozwijane podmenu (jak na stronie głównej): O nas ▾, Baza wiedzy ▾ */
 header.site-head .nav .nav-item{position:relative;display:inline-flex;align-items:center;}
-header.site-head .nav .nav-item>a::after{content:"";display:inline-block;margin-left:5px;border:4px solid transparent;border-top-color:currentColor;border-bottom:0;opacity:.6;transform:translateY(1px);}
-header.site-head .nav .nav-sub{position:absolute;top:100%;left:0;display:none;flex-direction:column;min-width:210px;background:#fff;border-radius:14px;padding:8px;box-shadow:0 14px 34px rgba(0,0,0,.20);z-index:70;}
+header.site-head .nav .nav-item>a::after{content:"";display:inline-block;margin-left:5px;border:4px solid transparent;border-top-color:currentColor;border-bottom:0;opacity:.65;transform:translateY(1px);}
+header.site-head .nav .nav-sub{position:absolute;top:100%;left:0;display:none;flex-direction:column;min-width:210px;background:#fff;border:1px solid #eef1f4;border-radius:14px;padding:8px;box-shadow:0 14px 34px rgba(20,40,60,.16);z-index:70;}
 header.site-head .nav .nav-item:hover .nav-sub,header.site-head .nav .nav-item:focus-within .nav-sub{display:flex;}
-header.site-head .nav .nav-sub a{display:block;font-size:13px;font-weight:600;padding:8px 13px;border-radius:10px;white-space:nowrap;}
-header.site-head .nav .nav-sub a:hover{background:#f4f6f8;color:#cc0a2b;}
-@media(max-width:1180px){header.site-head .nav a{padding:6px 8px;font-size:13px;}}
+header.site-head .nav .nav-sub a{display:block;font-size:14px;font-weight:600;color:#B3001E;padding:8px 13px;border-radius:10px;white-space:nowrap;}
+header.site-head .nav .nav-sub a:hover{background:#f7eef0;color:#cc0a2b;}
+@media(max-width:1180px){header.site-head .nav>a,header.site-head .nav .nav-item>a{padding:7px 9px;font-size:14px;}}
 @media(max-width:900px){header.site-head .nav{display:none;}}
 @media(max-width:560px){header.site-head .head-phone{display:none;}}
