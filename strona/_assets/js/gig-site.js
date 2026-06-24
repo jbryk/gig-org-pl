@@ -37,6 +37,11 @@
        biały, przyklejony na górze; czerwone menu i kolorowe logo czytelne na białym.
        Bez animacji transform — żeby nagłówek nigdy nie mógł „utknąć" poza ekranem. */
     ".mfn-header-tmpl.mfn-header-main.gig-sticky{position:fixed !important;top:0 !important;left:0;right:0;width:100%;background:#fff !important;box-shadow:0 3px 16px rgba(20,40,60,.12);}" +
+    /* płynne, eleganckie wjechanie przyklejonego paska z góry przy scrollu w dół.
+       Stan spoczynkowy nie ma transformacji, więc pasek nigdy nie utknie poza ekranem;
+       animacja tylko dla użytkowników bez preferencji ograniczenia ruchu. */
+    "@media (prefers-reduced-motion: no-preference){.mfn-header-tmpl.mfn-header-main.gig-sticky{animation:gigHdrDown .42s cubic-bezier(.22,.61,.36,1);}}" +
+    "@keyframes gigHdrDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}" +
     /* usuń zbędną ikonę hamburgera (czerwone kółko) z nagłówka DESKTOP — pełne menu i tak
        jest zawsze widoczne; mobilny hamburger w .mfn-header-mobile-section zostaje nietknięty */
     ".mfn-header-tmpl section:not(.mfn-header-mobile-section) a.mfn-header-menu-burger{display:none !important;}";
