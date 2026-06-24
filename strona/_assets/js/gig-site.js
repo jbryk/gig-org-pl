@@ -33,6 +33,8 @@
     /* gwarancja: rozwiń podmenu O nas na hover (bez odstępu), niezależnie od JS motywu */
     "li[data-gig-dd]{position:relative;}" +
     "li[data-gig-dd]:hover > .mfn-submenu, li[data-gig-dd]:focus-within > .mfn-submenu{display:block !important;opacity:1 !important;visibility:visible !important;pointer-events:auto !important;}" +
+    /* w rozwijanych podmenu bez poziomych strzałek (fa-arrow-right) — spójnie wszędzie */
+    ".mfn-submenu .mfn-menu-sub-subicon{display:none !important;}" +
     /* sticky: nagłówek BeTheme (strona główna + podstrony mirror) — po scrollu staje się
        biały, przyklejony na górze; czerwone menu i kolorowe logo czytelne na białym.
        Bez animacji transform — żeby nagłówek nigdy nie mógł „utknąć" poza ekranem. */
@@ -121,8 +123,77 @@
     });
   }
 
-  /* „Nadchodzące wydarzenia" jest teraz statyczną pozycją w rozwijanym menu
-     „Baza wiedzy" (strona główna) oraz w nagłówku podstron — bez ingerencji JS. */
+  /* ---------- (2b) PRZEBUDOWA MENU (site-wide, idempotentna) ----------
+     • „Aktualności" jako osobna pozycja top-level po prawej od „O nas”
+       (rozwijane: Nadchodzące wydarzenia, Artykuły),
+     • „Baza wiedzy” zostaje z Biuletynem (Aktualności/Artykuły/Nadchodzące przeniesione),
+     • „Dołącz do nas” wchodzi do rozwijanego „Kontakt”.
+     Wszystkie rozwijane mają strzałkę ▾ w dół (menu-sub mfn-menu-subicon). */
+  // markup top-level kotwicy ze strzałką ▾ w dół (jak „Baza wiedzy”)
+  function topAnchorHTML(href, label) {
+    return '<a class="mfn-menu-link" href="' + href + '">' +
+      '<span class="menu-item-helper mfn-menu-item-helper"></span>' +
+      '<span class="label-wrapper mfn-menu-label-wrapper"><span class="menu-label">' + label + '</span></span>' +
+      '<span class="menu-sub mfn-menu-subicon"><i class="fas fa-arrow-down"></i></span></a>';
+  }
+  function makeSubLi(href, label) { var d = document.createElement("div"); d.innerHTML = subLi(href, label); return d.firstChild; }
+  function hrefEnds(a, suffix) {
+    var h = (a.getAttribute("href") || "").replace(/[#?].*$/, "").replace(/\/+$/, "");
+    return h.endsWith(suffix.replace(/\/+$/, ""));
+  }
+  function topByHref(ul, suffix) {
+    return Array.prototype.slice.call(ul.children).filter(function (l) { return l.tagName === "LI"; })
+      .find(function (l) { var a = l.querySelector(":scope > a"); return a && hrefEnds(a, suffix); });
+  }
+  function restructureMenu(ul) {
+    if (!ul) return;
+    var oNas = topByHref(ul, "/o-nas");
+    var baza = topByHref(ul, "/baza-wiedzy");
+    var kontakt = topByHref(ul, "/kontakt");
+
+    // (A) „Aktualności” — osobna pozycja top-level po prawej od „O nas”
+    if (oNas && !topByHref(ul, "/aktualnosci-gig")) {
+      var aktLi = document.createElement("li");
+      aktLi.className = "menu-item menu-item-type-post_type menu-item-object-page mfn-menu-li menu-item-has-children";
+      aktLi.dataset.gigDd = "1";
+      aktLi.innerHTML = topAnchorHTML("/baza-wiedzy/aktualnosci-gig/", "Aktualności");
+      var aSub = document.createElement("ul"); aSub.className = "sub-menu mfn-submenu";
+      aSub.appendChild(makeSubLi("/nadchodzace-wydarzenia/", "Nadchodzące wydarzenia"));
+      aSub.appendChild(makeSubLi("/baza-wiedzy/artykuly/", "Artykuły"));
+      aktLi.appendChild(aSub);
+      oNas.insertAdjacentElement("afterend", aktLi);
+    }
+    // usuń z podmenu „Baza wiedzy” pozycje przeniesione (Aktualności, Artykuły, Nadchodzące)
+    if (baza) {
+      baza.dataset.gigDd = "1"; // spójne otwieranie na hover naszą regułą (jak O nas)
+      var bSub = baza.querySelector(":scope > ul");
+      if (bSub) {
+        Array.prototype.slice.call(bSub.children).forEach(function (l) {
+          var a = l.querySelector(":scope > a"); if (!a) return;
+          if (hrefEnds(a, "/aktualnosci-gig") || hrefEnds(a, "/artykuly") || hrefEnds(a, "/nadchodzace-wydarzenia")) l.remove();
+        });
+      }
+    }
+    // (B) „Dołącz do nas” → rozwijane „Kontakt”
+    var dolacz = topByHref(ul, "/dolacz-do-nas");
+    if (kontakt && dolacz && dolacz.parentElement === ul) {
+      if (!kontakt.querySelector(":scope > ul")) {
+        kontakt.classList.add("menu-item-has-children");
+        kontakt.dataset.gigDd = "1";
+        var kSub = document.createElement("ul"); kSub.className = "sub-menu mfn-submenu";
+        kSub.appendChild(makeSubLi("/dolacz-do-nas/", "Dołącz do nas"));
+        kontakt.appendChild(kSub);
+      }
+      dolacz.remove();
+    }
+  }
+  function restructureAll() {
+    var seen = [];
+    document.querySelectorAll('ul.mfn-header-menu, ul[id^="menu-main-menu"]').forEach(function (ul) {
+      if (seen.indexOf(ul) > -1) return; seen.push(ul);
+      restructureMenu(ul);
+    });
+  }
 
   /* ---------- (3) STICKY HEADER ---------- */
   // Nagłówek szablonu BeTheme (strona główna i pozostałe podstrony mirror) jest
@@ -146,15 +217,17 @@
   function init() {
     buildWidget();
     enhanceMenu();
+    restructureAll();
     stickyHeader();
-    // BeTheme przebudowuje markup menu po DOMContentLoaded — enhanceMenu („O nas")
-    // jest idempotentne, więc powtarzamy je po inicjalizacji motywu.
+    // BeTheme przebudowuje markup menu po DOMContentLoaded — enhanceMenu/restructureAll
+    // są idempotentne, więc powtarzamy je po inicjalizacji motywu.
     var tries = 0;
     var iv = setInterval(function () {
       enhanceMenu();
+      restructureAll();
       if (++tries >= 6) clearInterval(iv);
     }, 250);
-    window.addEventListener("load", enhanceMenu);
+    window.addEventListener("load", function () { enhanceMenu(); restructureAll(); });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();
