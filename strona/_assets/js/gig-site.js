@@ -44,6 +44,10 @@
        biały, przyklejony na górze; czerwone menu i kolorowe logo czytelne na białym.
        Bez animacji transform — żeby nagłówek nigdy nie mógł „utknąć" poza ekranem. */
     ".mfn-header-tmpl.mfn-header-main.gig-sticky{position:fixed !important;top:0 !important;left:0;right:0;width:100%;background:#fff !important;box-shadow:0 3px 16px rgba(20,40,60,.12);}" +
+    /* logo BeTheme ma biały napis (zaprojektowane pod ciemne hero u góry). Po przyklejeniu
+       pasek robi się biały — biały napis znika. Podmieniamy na wariant z ciemnym napisem
+       (oba sekcje: desktop i mobilna). U góry nad hero pasek jest przezroczysty → białe zostaje. */
+    ".mfn-header-tmpl.mfn-header-main.gig-sticky .logo-wrapper img{content:url(/wp-content/uploads/2026/04/gig-logo-new-poziom-dark.svg) !important;}" +
     /* płynne, eleganckie wjechanie przyklejonego paska z góry przy scrollu w dół.
        Stan spoczynkowy nie ma transformacji, więc pasek nigdy nie utknie poza ekranem;
        animacja tylko dla użytkowników bez preferencji ograniczenia ruchu. */
@@ -177,6 +181,12 @@
           var a = l.querySelector(":scope > a"); if (!a) return;
           if (hrefEnds(a, "/aktualnosci-gig") || hrefEnds(a, "/nadchodzace-wydarzenia")) l.remove();
         });
+        // kolejność w „Baza wiedzy": „Artykuły” przed „Biuletyn” (idempotentne)
+        var liArt = topByHref(bSub, "/artykuly");
+        var liBiul = topByHref(bSub, "/biuletyn-gig");
+        if (liArt && liBiul && (liArt.compareDocumentPosition(liBiul) & Node.DOCUMENT_POSITION_PRECEDING)) {
+          bSub.insertBefore(liArt, liBiul);
+        }
       }
     }
     // (B) „Dołącz do nas” → rozwijane „Kontakt”
