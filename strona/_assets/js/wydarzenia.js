@@ -5,7 +5,10 @@
      dateLabel — ładny zapis daty po polsku, np. "30 czerwca 2026" lub "Wrzesień 2026"
      title     — tytuł wydarzenia
      place     — miejsce (może być "")
-     teaser    — krótka zajawka (1–2 zdania)
+     teaser    — krótka zajawka (1–2 zdania); widoczna na stronie głównej i jako wstęp na podstronie
+     agendaTitle — (opcjonalne) nagłówek listy tematów, np. "Tematy spotkania:"
+     agenda    — (opcjonalne) tablica punktów programu; lista wyświetlana TYLKO na podstronie wydarzeń
+     note      — (opcjonalne) dopisek pod listą, np. "Link zostanie wysłany mailem."
      link      — URL do szczegółów lub "" (brak)
 */
 window.GIG_WYDARZENIA = [
@@ -14,7 +17,16 @@ window.GIG_WYDARZENIA = [
     dateLabel: "30 czerwca 2026",
     title: "Spotkanie online członków GIG",
     place: "Online",
-    teaser: "Spotkanie online dla członków Geodezyjnej Izby Gospodarczej — bieżące sprawy Izby, informacje branżowe i dyskusja.",
+    teaser: "Zapraszamy na przedwakacyjne spotkanie członków GIG. Termin: 30 czerwca, godz. 19:00.",
+    agendaTitle: "Tematy spotkania:",
+    agenda: [
+      "Omówienie XXXIII Walnego Zebrania GIG",
+      "Omówienie wniosków z XXXIII Walnego Zebrania GIG",
+      "Prezentacja i funkcjonalność nowej strony GIG",
+      "Omówienie pracy zespołu ds. samorządu",
+      "Omówienie prac Państwowej Rady Geodezyjnej i Kartograficznej"
+    ],
+    note: "Link do spotkania zostanie wysłany drogą mailową.",
     link: ""
   },
   {
